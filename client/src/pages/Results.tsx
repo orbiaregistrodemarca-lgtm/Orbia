@@ -41,7 +41,7 @@ export default function Results() {
   if (!result) return null;
 
   const copyDescription = () => {
-    navigator.clipboard.writeText(result.descripcionJuridica);
+    navigator.clipboard.writeText(result.descripcion_juridica);
     toast({
       title: "Copiado",
       description: "Descripción jurídica copiada al portapapeles",
@@ -49,9 +49,7 @@ export default function Results() {
   };
 
   const handleSuggestionClick = (name: string) => {
-    // Save the suggested name to be picked up by the form
     localStorage.setItem('orbia_retry_name', name);
-    // Keep the description
     const storedInput = localStorage.getItem('orbia_last_input');
     if (storedInput) {
       const input = JSON.parse(storedInput);
@@ -78,7 +76,7 @@ export default function Results() {
     }
   };
 
-  const mascotState = result.nivelViabilidad === 'ALTA' ? 'happy' : result.nivelViabilidad === 'BAJA' ? 'worried' : 'idle';
+  const mascotState = result.nivel_viabilidad === 'ALTA' ? 'happy' : result.nivel_viabilidad === 'BAJA' ? 'worried' : 'idle';
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 py-12 px-4">
@@ -87,7 +85,7 @@ export default function Results() {
         <div className="flex flex-col md:flex-row items-center justify-between mb-8 gap-6">
           <div className="text-center md:text-left">
             <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground mb-1">Resultados para</h2>
-            <h1 className="text-4xl font-display font-bold text-primary break-all">{brandName}</h1>
+            <h1 className="text-4xl font-display font-bold text-primary break-all">{brandName || result.nombre_marca}</h1>
           </div>
           <OrbiaMascot state={mascotState} size="md" />
         </div>
@@ -97,19 +95,19 @@ export default function Results() {
           <motion.div 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className={`rounded-xl border-2 p-6 flex items-center gap-6 shadow-sm ${getViabilityColor(result.nivelViabilidad)}`}
+            className={`rounded-xl border-2 p-6 flex items-center gap-6 shadow-sm ${getViabilityColor(result.nivel_viabilidad)}`}
           >
             <div className="shrink-0">
-              {getViabilityIcon(result.nivelViabilidad)}
+              {getViabilityIcon(result.nivel_viabilidad)}
             </div>
             <div>
-              <h3 className="text-xl font-bold mb-1">Viabilidad: {result.nivelViabilidad}</h3>
+              <h3 className="text-xl font-bold mb-1">Viabilidad: {result.nivel_viabilidad}</h3>
               <p className="text-sm opacity-90">{result.justificacion}</p>
             </div>
           </motion.div>
 
           {/* Famous Name Warning */}
-          {result.esNombreFamoso && (
+          {result.es_nombre_famoso && (
             <motion.div 
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
@@ -131,18 +129,18 @@ export default function Results() {
               </CardHeader>
               <CardContent>
                 <div className="flex items-baseline gap-2 mb-2">
-                  <span className="text-5xl font-bold text-secondary">{result.claseNiza}</span>
+                  <span className="text-5xl font-bold text-secondary">{result.clase_niza}</span>
                   <span className="text-xl font-medium text-muted-foreground">Clase</span>
                 </div>
-                <p className="text-lg font-medium mb-4">{result.nombreClase}</p>
+                <p className="text-lg font-medium mb-4">{result.nombre_clase}</p>
                 
-                {result.clasesAdicionales && (
+                {result.clases_adicionales && (
                   <div className="bg-amber-50 border border-amber-100 rounded-lg p-3 text-sm text-amber-800 dark:bg-amber-900/20 dark:border-amber-800 dark:text-amber-200">
                     <p className="font-bold flex items-center gap-2">
                       <AlertTriangle className="w-3 h-3" />
                       Protección Adicional
                     </p>
-                    <p className="mt-1">{result.clasesAdicionales}</p>
+                    <p className="mt-1">{result.clases_adicionales}</p>
                   </div>
                 )}
               </CardContent>
@@ -155,7 +153,7 @@ export default function Results() {
               </CardHeader>
               <CardContent>
                 <p className="text-muted-foreground leading-relaxed">
-                  {result.analisisRiesgo}
+                  {result.analisis_riesgo}
                 </p>
               </CardContent>
             </Card>
@@ -179,7 +177,7 @@ export default function Results() {
               <div className="px-6 pb-6">
                 <CollapsibleContent className="space-y-4">
                   <div className="bg-slate-50 dark:bg-slate-900 p-4 rounded-lg border text-sm leading-relaxed font-mono text-slate-600 dark:text-slate-400">
-                    {result.descripcionJuridica}
+                    {result.descripcion_juridica}
                   </div>
                   <Button onClick={copyDescription} variant="outline" className="w-full gap-2">
                     <Copy className="w-4 h-4" />
@@ -188,7 +186,7 @@ export default function Results() {
                 </CollapsibleContent>
                 {!isDescriptionOpen && (
                   <p className="text-sm text-muted-foreground truncate cursor-pointer hover:text-primary transition-colors" onClick={() => setIsDescriptionOpen(true)}>
-                    {result.descripcionJuridica.substring(0, 100)}...
+                    {result.descripcion_juridica.substring(0, 100)}...
                   </p>
                 )}
               </div>
@@ -199,7 +197,7 @@ export default function Results() {
           <div className="space-y-3">
             <h3 className="font-bold text-primary">Palabras Clave Detectadas</h3>
             <div className="flex flex-wrap gap-2">
-              {result.palabrasClave.map((keyword, i) => (
+              {result.palabras_clave.map((keyword, i) => (
                 <Badge key={i} variant="secondary" className="px-3 py-1 text-sm">
                   {keyword}
                 </Badge>
@@ -208,14 +206,14 @@ export default function Results() {
           </div>
 
           {/* Suggestions (if low viability) */}
-          {result.nivelViabilidad !== 'ALTA' && result.sugerenciasNombres.length > 0 && (
+          {result.nivel_viabilidad !== 'ALTA' && result.sugerencias_nombres.length > 0 && (
             <Card className="border-secondary/20 bg-blue-50/50 dark:bg-blue-900/10">
               <CardHeader>
                 <CardTitle className="text-primary">Nombres Alternativos Sugeridos</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="flex flex-wrap gap-3">
-                  {result.sugerenciasNombres.map((name, i) => (
+                  {result.sugerencias_nombres.map((name, i) => (
                     <Button 
                       key={i} 
                       variant="outline" 

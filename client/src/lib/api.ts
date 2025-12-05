@@ -1,14 +1,19 @@
 export interface ClassificationResult {
-  claseNiza: number;
-  nombreClase: string;
+  id?: number;
+  nombre_marca: string;
+  que_vende: string;
+  url_empresa?: string | null;
+  clase_niza: number;
+  nombre_clase: string;
   justificacion: string;
-  nivelViabilidad: 'ALTA' | 'MEDIA' | 'BAJA';
-  esNombreFamoso: boolean;
-  analisisRiesgo: string;
-  descripcionJuridica: string;
-  palabrasClave: string[];
-  sugerenciasNombres: string[];
-  clasesAdicionales: string;
+  nivel_viabilidad: 'ALTA' | 'MEDIA' | 'BAJA';
+  es_nombre_famoso: boolean;
+  analisis_riesgo: string;
+  descripcion_juridica: string;
+  palabras_clave: string[];
+  sugerencias_nombres: string[];
+  clases_adicionales?: string | null;
+  created_at?: string;
 }
 
 export async function classifyBrand(data: {
@@ -16,41 +21,36 @@ export async function classifyBrand(data: {
   que_vende: string;
   url_empresa?: string;
 }): Promise<ClassificationResult> {
-  const response = await fetch('https://orbia.app.n8n.cloud/webhook/clasificar-marca', {
+  const response = await fetch('/api/clasificar', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data),
   });
 
   if (!response.ok) {
-    throw new Error('Error al clasificar la marca');
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.message || 'Error al clasificar la marca');
   }
 
-  const responseData = await response.json();
-  const rawData = Array.isArray(responseData) ? responseData[0] : responseData;
+  return response.json();
+}
 
-  // Parse keywords if they come as a string
-  let keywords: string[] = [];
-  if (typeof rawData.palabras_clave === 'string') {
-    try {
-      keywords = JSON.parse(rawData.palabras_clave);
-    } catch (e) {
-      keywords = [rawData.palabras_clave];
-    }
-  } else if (Array.isArray(rawData.palabras_clave)) {
-    keywords = rawData.palabras_clave;
+export async function getEstudios(): Promise<ClassificationResult[]> {
+  const response = await fetch('/api/estudios');
+  
+  if (!response.ok) {
+    throw new Error('Error al obtener los estudios');
   }
 
-  return {
-    claseNiza: rawData.clase_niza || 0,
-    nombreClase: rawData.nombre_clase || '',
-    justificacion: rawData.justificacion || '',
-    nivelViabilidad: rawData.nivel_viabilidad || 'MEDIA',
-    esNombreFamoso: rawData.es_nombre_famoso || false,
-    analisisRiesgo: rawData.analisis_riesgo || '',
-    descripcionJuridica: rawData.descripcion_juridica || '',
-    palabrasClave: keywords,
-    sugerenciasNombres: rawData.sugerencias_nombres || [],
-    clasesAdicionales: rawData.clases_adicionales || '',
-  };
+  return response.json();
+}
+
+export async function getEstudioById(id: number): Promise<ClassificationResult> {
+  const response = await fetch(`/api/estudios/${id}`);
+  
+  if (!response.ok) {
+    throw new Error('Error al obtener el estudio');
+  }
+
+  return response.json();
 }
