@@ -1,5 +1,6 @@
 import { motion, Variants } from 'framer-motion';
-import orbiaImage from '@assets/generated_images/glowing_orb_mascot_on_black_background_for_easy_blending.png';
+
+const ORBIA_MASCOT_URL = 'https://res.cloudinary.com/dz964kisp/image/upload/v1764954057/orbia_mascot_sz8nnb.png';
 
 interface OrbiaMascotProps {
   className?: string;
@@ -56,13 +57,10 @@ export function OrbiaMascot({ className = '', state = 'idle', size = 'md' }: Orb
       variants={variants}
       animate={state}
     >
-      {/* Glow effect behind */}
-      <div className="absolute inset-0 bg-cyan-500/30 blur-[40px] rounded-full" />
-      
       <img 
-        src={orbiaImage} 
+        src={ORBIA_MASCOT_URL} 
         alt="ORBIA Mascota" 
-        className="w-full h-full object-contain relative z-10 mix-blend-screen filter contrast-125 brightness-110"
+        className="w-full h-full object-contain relative z-10 drop-shadow-2xl"
       />
     </motion.div>
   );
