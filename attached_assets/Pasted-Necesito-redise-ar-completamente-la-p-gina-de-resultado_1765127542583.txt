@@ -1,0 +1,95 @@
+Necesito rediseñar completamente la página de resultados (/resultados) para mostrar la información del estudio de marca de forma profesional y clara.
+
+## DATOS QUE RECIBE DEL WEBHOOK:
+
+El webhook devuelve este JSON (ya transformado):
+{
+  "nombre_marca": "Nominus",
+  "que_vende": "Descripción del negocio...",
+  "clase_niza": 45,
+  "nombre_clase": "Servicios jurídicos",
+  "nivel_viabilidad": "ALTA" | "MEDIA" | "BAJA",
+  "es_nombre_famoso": boolean,
+  "justificacion": "Fundamento legal...",
+  "analisis_riesgo": "Análisis de riesgo...",
+  "descripcion_juridica": "SERVICIOS EN MAYÚSCULAS; SEPARADOS POR PUNTO Y COMA",
+  "palabras_clave": ["palabra1", "palabra2"],
+  "sugerencias_nombres": ["alternativa1", "alternativa2"],
+  "clase_principal_descripcion": "DESCRIPCIÓN IMPI CLASE PRINCIPAL",
+  "clase_secundaria_1_numero": 41,
+  "clase_secundaria_1_nombre": "Educación y entretenimiento",
+  "clase_secundaria_1_descripcion": "DESCRIPCIÓN IMPI CLASE SECUNDARIA 1",
+  "clase_secundaria_2_numero": 25,
+  "clase_secundaria_2_nombre": "Prendas de vestir",
+  "clase_secundaria_2_descripcion": "DESCRIPCIÓN IMPI CLASE SECUNDARIA 2"
+}
+
+## DISEÑO DE LA PÁGINA DE RESULTADOS:
+
+### SECCIÓN 1: HEADER
+- Título grande: "Estudio de Marca" 
+- Subtítulo: nombre de la marca en grande y bold
+- Mascota ORBIA al lado (estado según viabilidad)
+
+### SECCIÓN 2: VIABILIDAD (Card prominente)
+- Si ALTA: Card verde con ícono ✓ y texto "¡Tu marca es registrable!"
+- Si MEDIA: Card amarilla con ícono ⚠️ y texto "Tu marca tiene algunos riesgos"
+- Si BAJA: Card roja con ícono ✗ y texto "Tu marca tiene problemas para registrarse"
+- Debajo: mostrar la justificación legal
+
+### SECCIÓN 3: ALERTA NOMBRE FAMOSO (solo si es_nombre_famoso === true)
+- Card roja con advertencia
+- Texto: "⚠️ Este nombre está asociado a una persona famosa, lo cual viola el Artículo 173 de la LFPPI"
+
+### SECCIÓN 4: CLASES A REGISTRAR (MUY IMPORTANTE)
+Mostrar como cards expandibles/tabs:
+
+**Título de sección:** "Clases NIZA a Registrar para Protección Total"
+
+**Card Clase Principal:**
+- Badge: "CLASE PRINCIPAL"
+- Número grande: {clase_niza}
+- Nombre: {nombre_clase}
+- Descripción IMPI en caja expandible con fondo gris claro
+- Botón "Copiar descripción"
+
+**Card Clase Secundaria 1 (solo si clase_secundaria_1_numero existe):**
+- Badge: "CLASE ADICIONAL"
+- Número grande: {clase_secundaria_1_numero}
+- Nombre: {clase_secundaria_1_nombre}
+- Descripción IMPI en caja expandible
+- Botón "Copiar descripción"
+
+**Card Clase Secundaria 2 (solo si clase_secundaria_2_numero existe):**
+- Mismo formato que secundaria 1
+
+### SECCIÓN 5: ANÁLISIS DE RIESGO (solo si tiene contenido real)
+- NO mostrar si el texto es vacío o genérico
+- Card con título "Análisis de Riesgo"
+- Texto del análisis
+
+### SECCIÓN 6: PALABRAS CLAVE
+- Título: "Palabras Clave de tu Marca"
+- Mostrar como badges/chips coloridos
+
+### SECCIÓN 7: NOMBRES ALTERNATIVOS (solo si viabilidad NO es ALTA)
+- Título: "Te sugerimos estos nombres alternativos"
+- Botones clickeables que lleven al formulario con el nombre pre-llenado
+
+### SECCIÓN 8: ACCIONES
+- Botón principal: "Continuar con el registro →" (grande, azul)
+- Botón secundario: "Clasificar otra marca" (outline)
+
+## REGLAS DE UI/UX:
+
+1. NO mostrar secciones vacías o con datos genéricos
+2. Las descripciones IMPI deben estar en cajas con scroll si son muy largas
+3. Cada clase debe tener su propio botón "Copiar descripción" funcional
+4. El diseño debe ser limpio, profesional, fácil de entender
+5. Mobile-first, responsive
+6. Usar la paleta de colores existente de ORBIA
+7. Animaciones sutiles al cargar cada sección
+
+## COMPONENTE ClassResults.tsx:
+
+Crea un componente que reciba los datos y renderice todo esto. Usa los componentes de shadcn/ui que ya tienes (Card, Badge, Button, Collapsible, etc.)
