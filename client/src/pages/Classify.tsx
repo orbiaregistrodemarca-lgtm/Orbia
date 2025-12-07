@@ -9,7 +9,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { OrbiaMascot } from '@/components/mascot/OrbiaMascot';
-import { classifyBrand, ClassificationResult } from '@/lib/api';
+import { classifyBrand } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Loader2 } from 'lucide-react';
@@ -45,7 +45,6 @@ export default function Classify() {
     }
   }, [isLoading]);
 
-  // Check for pre-filled data (from "Try another name" feature)
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -55,24 +54,27 @@ export default function Classify() {
     },
   });
 
-  // Clear retry data after loading
   useEffect(() => {
     localStorage.removeItem('orbia_retry_name');
     localStorage.removeItem('orbia_retry_desc');
   }, []);
 
   async function onSubmit(data: FormValues) {
+    console.log('🚀 Iniciando clasificación con:', data);
     setIsLoading(true);
+    
     try {
       const result = await classifyBrand(data);
+      console.log('✅ Resultado recibido:', result);
       
-      // Save result to local storage to persist across refreshes/navigation
       localStorage.setItem('orbia_last_result', JSON.stringify(result));
-      localStorage.setItem('orbia_last_input', JSON.stringify(data)); // Save input for "Classify another" flow
+      localStorage.setItem('orbia_last_input', JSON.stringify(data));
+      console.log('💾 Guardado en localStorage');
       
+      console.log('🔄 Redirigiendo a /resultados...');
       setLocation('/resultados');
     } catch (error) {
-      console.error(error);
+      console.error('❌ Error en clasificación:', error);
       toast({
         variant: "destructive",
         title: "Error",
@@ -117,7 +119,7 @@ export default function Classify() {
                   className="h-full bg-secondary"
                   initial={{ width: "0%" }}
                   animate={{ width: "100%" }}
-                  transition={{ duration: 8, ease: "linear" }}
+                  transition={{ duration: 15, ease: "linear" }}
                 />
               </div>
             </motion.div>
@@ -153,7 +155,12 @@ export default function Classify() {
                           <FormItem>
                             <FormLabel>Nombre de la Marca</FormLabel>
                             <FormControl>
-                              <Input placeholder="Ej: TacoMax, TechFlow, Bella Vista..." {...field} className="text-lg" />
+                              <Input 
+                                placeholder="Ej: TacoMax, TechFlow, Bella Vista..." 
+                                {...field} 
+                                className="text-lg"
+                                data-testid="input-nombre-marca"
+                              />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -170,6 +177,7 @@ export default function Classify() {
                               <Textarea 
                                 placeholder="Describe detalladamente qué vendes. Ejemplo: Vendo tacos de pastor, bistec y carnitas. También hago banquetes para eventos y vendo souvenirs como llaveros y playeras."
                                 className="min-h-[120px] text-base"
+                                data-testid="input-que-vende"
                                 {...field} 
                               />
                             </FormControl>
@@ -188,14 +196,25 @@ export default function Classify() {
                           <FormItem>
                             <FormLabel>Sitio Web o Red Social (Opcional)</FormLabel>
                             <FormControl>
-                              <Input placeholder="https://..." type="url" {...field} />
+                              <Input 
+                                placeholder="https://..." 
+                                type="url" 
+                                data-testid="input-url"
+                                {...field} 
+                              />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
                         )}
                       />
 
-                      <Button type="submit" size="lg" className="w-full text-lg py-6 bg-primary hover:bg-primary/90 shadow-lg hover:translate-y-[-2px] transition-all">
+                      <Button 
+                        type="submit" 
+                        size="lg" 
+                        className="w-full text-lg py-6 bg-primary hover:bg-primary/90 shadow-lg hover:translate-y-[-2px] transition-all"
+                        data-testid="button-submit"
+                        disabled={isLoading}
+                      >
                         Analizar mi marca
                       </Button>
                     </form>

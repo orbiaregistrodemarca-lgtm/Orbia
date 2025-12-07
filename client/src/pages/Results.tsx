@@ -18,27 +18,46 @@ export default function Results() {
   const { toast } = useToast();
 
   useEffect(() => {
+    console.log('🔍 Results: Buscando datos en localStorage...');
+    
     const storedResult = localStorage.getItem('orbia_last_result');
     const storedInput = localStorage.getItem('orbia_last_input');
     
+    console.log('📦 storedResult:', storedResult);
+    console.log('📦 storedInput:', storedInput);
+    
     if (!storedResult) {
+      console.log('⚠️ No hay resultados, redirigiendo a /clasificar');
       setLocation('/clasificar');
       return;
     }
 
     try {
-      setResult(JSON.parse(storedResult));
+      const parsed = JSON.parse(storedResult);
+      console.log('✅ Resultado parseado:', parsed);
+      setResult(parsed);
+      
       if (storedInput) {
         const input = JSON.parse(storedInput);
         setBrandName(input.nombre_marca);
+        console.log('📝 Nombre de marca:', input.nombre_marca);
       }
     } catch (e) {
-      console.error("Error parsing result", e);
+      console.error('❌ Error parseando resultado:', e);
       setLocation('/clasificar');
     }
   }, [setLocation]);
 
-  if (!result) return null;
+  if (!result) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <OrbiaMascot state="thinking" size="lg" className="mx-auto mb-4" />
+          <p className="text-muted-foreground">Cargando resultados...</p>
+        </div>
+      </div>
+    );
+  }
 
   const copyDescription = () => {
     navigator.clipboard.writeText(result.descripcion_juridica);
@@ -85,7 +104,9 @@ export default function Results() {
         <div className="flex flex-col md:flex-row items-center justify-between mb-8 gap-6">
           <div className="text-center md:text-left">
             <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground mb-1">Resultados para</h2>
-            <h1 className="text-4xl font-display font-bold text-primary break-all">{brandName || result.nombre_marca}</h1>
+            <h1 className="text-4xl font-display font-bold text-primary break-all" data-testid="text-brand-name">
+              {brandName || result.nombre_marca}
+            </h1>
           </div>
           <OrbiaMascot state={mascotState} size="md" />
         </div>
@@ -96,6 +117,7 @@ export default function Results() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             className={`rounded-xl border-2 p-6 flex items-center gap-6 shadow-sm ${getViabilityColor(result.nivel_viabilidad)}`}
+            data-testid="card-viabilidad"
           >
             <div className="shrink-0">
               {getViabilityIcon(result.nivel_viabilidad)}
@@ -112,6 +134,7 @@ export default function Results() {
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               className="bg-red-50 border border-red-200 rounded-xl p-4 flex items-start gap-3 text-red-800 dark:bg-red-900/20 dark:border-red-800 dark:text-red-200"
+              data-testid="alert-nombre-famoso"
             >
               <AlertTriangle className="w-5 h-5 shrink-0 mt-0.5" />
               <div>
@@ -129,10 +152,10 @@ export default function Results() {
               </CardHeader>
               <CardContent>
                 <div className="flex items-baseline gap-2 mb-2">
-                  <span className="text-5xl font-bold text-secondary">{result.clase_niza}</span>
+                  <span className="text-5xl font-bold text-secondary" data-testid="text-clase-niza">{result.clase_niza}</span>
                   <span className="text-xl font-medium text-muted-foreground">Clase</span>
                 </div>
-                <p className="text-lg font-medium mb-4">{result.nombre_clase}</p>
+                <p className="text-lg font-medium mb-4" data-testid="text-nombre-clase">{result.nombre_clase}</p>
                 
                 {result.clases_adicionales && (
                   <div className="bg-amber-50 border border-amber-100 rounded-lg p-3 text-sm text-amber-800 dark:bg-amber-900/20 dark:border-amber-800 dark:text-amber-200">
@@ -152,7 +175,7 @@ export default function Results() {
                 <CardTitle className="text-primary">Análisis de Riesgo</CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-muted-foreground leading-relaxed">
+                <p className="text-muted-foreground leading-relaxed" data-testid="text-analisis-riesgo">
                   {result.analisis_riesgo}
                 </p>
               </CardContent>
@@ -168,7 +191,7 @@ export default function Results() {
                   Descripción para IMPI
                 </CardTitle>
                 <CollapsibleTrigger asChild>
-                  <Button variant="ghost" size="sm">
+                  <Button variant="ghost" size="sm" data-testid="button-toggle-descripcion">
                     {isDescriptionOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
                   </Button>
                 </CollapsibleTrigger>
@@ -176,10 +199,10 @@ export default function Results() {
               
               <div className="px-6 pb-6">
                 <CollapsibleContent className="space-y-4">
-                  <div className="bg-slate-50 dark:bg-slate-900 p-4 rounded-lg border text-sm leading-relaxed font-mono text-slate-600 dark:text-slate-400">
+                  <div className="bg-slate-50 dark:bg-slate-900 p-4 rounded-lg border text-sm leading-relaxed font-mono text-slate-600 dark:text-slate-400" data-testid="text-descripcion-juridica">
                     {result.descripcion_juridica}
                   </div>
-                  <Button onClick={copyDescription} variant="outline" className="w-full gap-2">
+                  <Button onClick={copyDescription} variant="outline" className="w-full gap-2" data-testid="button-copiar">
                     <Copy className="w-4 h-4" />
                     Copiar descripción
                   </Button>
@@ -194,19 +217,21 @@ export default function Results() {
           </Card>
 
           {/* Keywords */}
-          <div className="space-y-3">
-            <h3 className="font-bold text-primary">Palabras Clave Detectadas</h3>
-            <div className="flex flex-wrap gap-2">
-              {result.palabras_clave.map((keyword, i) => (
-                <Badge key={i} variant="secondary" className="px-3 py-1 text-sm">
-                  {keyword}
-                </Badge>
-              ))}
+          {result.palabras_clave && result.palabras_clave.length > 0 && (
+            <div className="space-y-3">
+              <h3 className="font-bold text-primary">Palabras Clave Detectadas</h3>
+              <div className="flex flex-wrap gap-2">
+                {result.palabras_clave.map((keyword, i) => (
+                  <Badge key={i} variant="secondary" className="px-3 py-1 text-sm" data-testid={`badge-keyword-${i}`}>
+                    {keyword}
+                  </Badge>
+                ))}
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Suggestions (if low viability) */}
-          {result.nivel_viabilidad !== 'ALTA' && result.sugerencias_nombres.length > 0 && (
+          {result.nivel_viabilidad !== 'ALTA' && result.sugerencias_nombres && result.sugerencias_nombres.length > 0 && (
             <Card className="border-secondary/20 bg-blue-50/50 dark:bg-blue-900/10">
               <CardHeader>
                 <CardTitle className="text-primary">Nombres Alternativos Sugeridos</CardTitle>
@@ -219,6 +244,7 @@ export default function Results() {
                       variant="outline" 
                       className="bg-white hover:bg-blue-50 hover:text-primary border-blue-200 shadow-sm"
                       onClick={() => handleSuggestionClick(name)}
+                      data-testid={`button-sugerencia-${i}`}
                     >
                       {name}
                     </Button>
@@ -230,11 +256,11 @@ export default function Results() {
 
           {/* Actions */}
           <div className="flex flex-col sm:flex-row gap-4 pt-8 border-t mt-4">
-            <Button size="lg" className="flex-1 bg-primary text-lg shadow-xl hover:shadow-2xl hover:-translate-y-1 transition-all">
+            <Button size="lg" className="flex-1 bg-primary text-lg shadow-xl hover:shadow-2xl hover:-translate-y-1 transition-all" data-testid="button-continuar">
               Continuar con el registro <ArrowRight className="ml-2 w-5 h-5" />
             </Button>
             <Link href="/clasificar">
-              <Button variant="outline" size="lg" className="flex-1">
+              <Button variant="outline" size="lg" className="flex-1" data-testid="button-clasificar-otra">
                 <ArrowLeft className="mr-2 w-5 h-5" /> Clasificar otra marca
               </Button>
             </Link>
