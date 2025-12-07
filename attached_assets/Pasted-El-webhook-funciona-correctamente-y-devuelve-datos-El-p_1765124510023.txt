@@ -1,0 +1,112 @@
+El webhook funciona correctamente y devuelve datos. El problema es que la página de resultados no se muestra.
+
+DIAGNÓSTICO NECESARIO:
+1. Abre la consola del navegador (F12 → Console) cuando hagas click en "Analizar mi marca"
+2. Verifica que los datos se guarden en localStorage
+
+CAMBIOS NECESARIOS:
+
+1. En client/src/lib/api.ts - Asegúrate que esté llamando DIRECTAMENTE al webhook:
+
+const WEBHOOK_URL = 'https://orbia.app.n8n.cloud/webhook/clasificar-marca';
+
+export async function classifyBrand(data) {
+  console.log('📤 Enviando:', data);
+  
+  const response = await fetch(WEBHOOK_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      nombre_marca: data.nombre_marca,
+      que_vende: data.que_vende,
+      url_empresa: data.url_empresa || '',
+    }),
+  });
+
+  const webhookData = await response.json();
+  console.log('📥 Respuesta webhook:', webhookData);
+  
+  const rawData = Array.isArray(webhookData) ? webhookData[0] : webhookData;
+  
+  // Parsear palabras_clave
+  let palabrasClave = [];
+  if (typeof rawData.palabras_clave === 'string') {
+    try { palabrasClave = JSON.parse(rawData.palabras_clave); } 
+    catch { palabrasClave = []; }
+  } else if (Array.isArray(rawData.palabras_clave)) {
+    palabrasClave = rawData.palabras_clave;
+  }
+
+  return {
+    nombre_marca: data.nombre_marca,
+    que_vende: data.que_vende,
+    clase_niza: rawData.clase_niza || 0,
+    nombre_clase: rawData.nombre_clase || '',
+    justificacion: rawData.justificacion || '',
+    nivel_viabilidad: rawData.nivel_viabilidad || 'MEDIA',
+    es_nombre_famoso: rawData.es_nombre_famoso || false,
+    analisis_riesgo: rawData.analisis_riesgo || '',
+    descripcion_juridica: rawData.descripcion_juridica || '',
+    palabras_clave: palabrasClave,
+    sugerencias_nombres: rawData.sugerencias_nombres || [],
+    clases_adicionales: rawData.clases_adicionales || null,
+  };
+}
+
+2. En client/src/pages/Classify.tsx - Verifica el flujo después de clasificar:
+
+async function onSubmit(data) {
+  setIsLoading(true);
+  try {
+    const result = await classifyBrand(data);
+    console.log('✅ Resultado a guardar:', result);
+    
+    localStorage.setItem('orbia_last_result', JSON.stringify(result));
+    localStorage.setItem('orbia_last_input', JSON.stringify(data));
+    
+    console.log('💾 Guardado en localStorage, redirigiendo...');
+    setLocation('/resultados');
+  } catch (error) {
+    console.error('❌ Error:', error);
+    toast({ variant: "destructive", title: "Error", description: "Hubo un problema al analizar tu marca." });
+  } finally {
+    setIsLoading(false);
+  }
+}
+
+3. En client/src/pages/Results.tsx - Verifica que lea localStorage correctamente:
+
+useEffect(() => {
+  console.log('🔍 Buscando resultados en localStorage...');
+  const storedResult = localStorage.getItem('orbia_last_result');
+  const storedInput = localStorage.getItem('orbia_last_input');
+  
+  console.log('📦 storedResult:', storedResult);
+  console.log('📦 storedInput:', storedInput);
+  
+  if (!storedResult) {
+    console.log('⚠️ No hay resultados, redirigiendo a /clasificar');
+    setLocation('/clasificar');
+    return;
+  }
+
+  try {
+    const parsed = JSON.parse(storedResult);
+    console.log('✅ Resultado parseado:', parsed);
+    setResult(parsed);
+    
+    if (storedInput) {
+      const input = JSON.parse(storedInput);
+      setBrandName(input.nombre_marca);
+    }
+  } catch (e) {
+    console.error('❌ Error parseando resultado:', e);
+    setLocation('/clasificar');
+  }
+}, [setLocation]);
+
+4. Verifica que la ruta /resultados exista en App.tsx:
+
+<Route path="/resultados" component={Results} />
+
+Después de estos cambios, abre F12 → Console y prueba clasificar una marca. Los logs mostrarán exactamente dónde falla.
