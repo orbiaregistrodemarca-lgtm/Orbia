@@ -14,6 +14,15 @@ export interface ClassificationResult {
   palabras_clave: string[];
   sugerencias_nombres: string[];
   clases_adicionales?: string | null;
+  
+  clase_principal_descripcion?: string;
+  clase_secundaria_1_numero?: number | null;
+  clase_secundaria_1_nombre?: string | null;
+  clase_secundaria_1_descripcion?: string | null;
+  clase_secundaria_2_numero?: number | null;
+  clase_secundaria_2_nombre?: string | null;
+  clase_secundaria_2_descripcion?: string | null;
+  clases_a_registrar?: string;
 }
 
 export async function classifyBrand(data: {
@@ -55,6 +64,17 @@ export async function classifyBrand(data: {
     palabrasClave = rawData.palabras_clave;
   }
 
+  let sugerenciasNombres: string[] = [];
+  if (typeof rawData.sugerencias_nombres === 'string') {
+    try { 
+      sugerenciasNombres = JSON.parse(rawData.sugerencias_nombres); 
+    } catch { 
+      sugerenciasNombres = [rawData.sugerencias_nombres]; 
+    }
+  } else if (Array.isArray(rawData.sugerencias_nombres)) {
+    sugerenciasNombres = rawData.sugerencias_nombres;
+  }
+
   const result: ClassificationResult = {
     nombre_marca: data.nombre_marca,
     que_vende: data.que_vende,
@@ -67,8 +87,17 @@ export async function classifyBrand(data: {
     analisis_riesgo: rawData.analisis_riesgo || '',
     descripcion_juridica: rawData.descripcion_juridica || '',
     palabras_clave: palabrasClave,
-    sugerencias_nombres: rawData.sugerencias_nombres || [],
+    sugerencias_nombres: sugerenciasNombres,
     clases_adicionales: rawData.clases_adicionales || null,
+    
+    clase_principal_descripcion: rawData.clase_principal_descripcion || rawData.descripcion_juridica || '',
+    clase_secundaria_1_numero: rawData.clase_secundaria_1_numero || null,
+    clase_secundaria_1_nombre: rawData.clase_secundaria_1_nombre || null,
+    clase_secundaria_1_descripcion: rawData.clase_secundaria_1_descripcion || null,
+    clase_secundaria_2_numero: rawData.clase_secundaria_2_numero || null,
+    clase_secundaria_2_nombre: rawData.clase_secundaria_2_nombre || null,
+    clase_secundaria_2_descripcion: rawData.clase_secundaria_2_descripcion || null,
+    clases_a_registrar: rawData.clases_a_registrar || null,
   };
 
   console.log('✅ Resultado final:', result);
