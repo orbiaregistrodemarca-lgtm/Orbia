@@ -376,13 +376,15 @@ export default function Results() {
             transition={{ delay: 0.7 }}
             className="flex flex-col sm:flex-row gap-4 pt-6 border-t"
           >
-            <Button 
-              size="lg" 
-              className="flex-1 bg-primary text-lg py-6 shadow-xl hover:shadow-2xl hover:-translate-y-1 transition-all" 
-              data-testid="button-continuar"
-            >
-              Continuar con el registro <ArrowRight className="ml-2 w-5 h-5" />
-            </Button>
+            <Link href="/logo" className="flex-1">
+              <Button 
+                size="lg" 
+                className="w-full bg-primary text-lg py-6 shadow-xl hover:shadow-2xl hover:-translate-y-1 transition-all" 
+                data-testid="button-continuar"
+              >
+                Continuar con el registro <ArrowRight className="ml-2 w-5 h-5" />
+              </Button>
+            </Link>
             <Link href="/clasificar" className="flex-1">
               <Button variant="outline" size="lg" className="w-full py-6" data-testid="button-clasificar-otra">
                 <ArrowLeft className="mr-2 w-5 h-5" /> Clasificar otra marca
