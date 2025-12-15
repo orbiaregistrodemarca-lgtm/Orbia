@@ -1,0 +1,201 @@
+Necesito crear el Módulo 2 de ORBIA: Análisis de Logo. Este módulo viene DESPUÉS del Módulo 1 (Clasificación NIZA).
+
+## FLUJO DEL USUARIO:
+
+1. Usuario completa Módulo 1 (clasificación) → Ve resultados
+2. Click en "Continuar con el registro" → Llega al Módulo 2
+3. Módulo 2 pregunta: "¿Ya tienes un logo para tu marca?"
+   - SÍ → Sube imagen → IA analiza → Muestra resultados
+   - NO → IA genera 2 opciones → Usuario elige una
+
+## WEBHOOK DEL MÓDULO 2:
+
+URL: https://orbia.app.n8n.cloud/webhook/analizar-logo
+Método: POST
+Content-Type: application/json
+
+Request Body:
+{
+  "estudio_id": "uuid-del-estudio-de-modulo-1",
+  "nombre_marca": "NombreDeLaMarca",
+  "descripcion_negocio": "Lo que vende el usuario",
+  "tiene_logo": true | false,
+  "logo_base64": "data:image/png;base64,..." // Solo si tiene_logo = true
+}
+
+Response:
+{
+  "success": true,
+  "es_registrable": true | false,
+  "nivel_riesgo": "BAJO" | "MEDIO" | "ALTO",
+  "analisis": "Descripción del análisis del logo...",
+  "distintividad": "ALTA" | "MEDIA" | "BAJA",
+  "similitudes_detectadas": ["Nike", "Adidas"], // logos famosos similares
+  "problemas": ["Problema 1", "Problema 2"], // si hay
+  "sugerencias": "Sugerencias de mejora...",
+  "logo_origen": "subido" | "generado",
+  "logo_alternativa_1_url": "https://...", // URL de alternativa generada
+  "logo_alternativa_2_url": "https://..."  // URL de alternativa generada
+}
+
+## NUEVA RUTA: /logo
+
+Crear página client/src/pages/Logo.tsx
+
+## DISEÑO DE LA PÁGINA:
+
+### SECCIÓN 1: Header
+- Título: "Análisis de Logo"
+- Subtítulo: "Verifica que tu logo sea registrable ante el IMPI"
+- Mascota ORBIA al lado
+
+### SECCIÓN 2: Pregunta inicial
+Card grande con dos opciones:
+
+"¿Ya tienes un logo para [NOMBRE_MARCA]?"
+
+[Card Opción 1 - Clickeable]
+📤 "Sí, quiero subir mi logo"
+"Analizaremos si es registrable"
+
+[Card Opción 2 - Clickeable]
+🎨 "No tengo logo, genera opciones"
+"Crearemos 2 propuestas con IA"
+
+### SECCIÓN 3A: Si elige SUBIR LOGO
+- Área de drag & drop para imagen
+- Preview de la imagen subida
+- Formatos aceptados: PNG, JPG, SVG
+- Tamaño máximo: 5MB
+- Botón "Analizar logo"
+
+### SECCIÓN 3B: Si elige GENERAR LOGO
+- Mostrar loading con mascota ORBIA "pensando"
+- Texto: "Estamos creando propuestas únicas para tu marca..."
+- Llamar al webhook con tiene_logo: false
+
+### SECCIÓN 4: Estado de carga
+- Mascota ORBIA animada "analizando"
+- Barra de progreso
+- Tips rotativos:
+  - "Un logo distintivo es más fácil de registrar"
+  - "Evita similitudes con marcas famosas"
+  - "Los logos simples son más memorables"
+
+### SECCIÓN 5: Resultados del análisis
+
+#### Si el logo ES REGISTRABLE:
+- Card verde grande: "✅ ¡Tu logo es registrable!"
+- Mostrar análisis completo
+- Distintividad: ALTA/MEDIA/BAJA con badge de color
+- Botón: "Continuar al siguiente paso →"
+
+#### Si el logo NO ES REGISTRABLE:
+- Card roja: "⚠️ Tu logo tiene problemas para registrarse"
+- Lista de problemas detectados
+- Similitudes con logos famosos (si hay)
+- Sugerencias de mejora
+
+- Título: "Te generamos 2 alternativas registrables:"
+- Mostrar 2 cards con las imágenes generadas (logo_alternativa_1_url, logo_alternativa_2_url)
+- Cada card tiene botón "Elegir este logo"
+- O botón "Subir otro logo" para intentar de nuevo
+
+#### Si GENERÓ logos (no tenía):
+- Título: "Creamos estas propuestas para tu marca:"
+- 2 cards con las imágenes generadas
+- Cada card tiene botón "Elegir este logo"
+- Opción: "Generar más opciones" (vuelve a llamar webhook)
+
+### SECCIÓN 6: Acciones finales
+- Botón principal: "Continuar al siguiente paso →"
+- Botón secundario: "← Volver a clasificación"
+
+## CÓDIGO PARA client/src/lib/api.ts
+
+Agregar esta función:
+
+export interface LogoAnalysisResult {
+  success: boolean;
+  es_registrable: boolean;
+  nivel_riesgo: 'BAJO' | 'MEDIO' | 'ALTO';
+  analisis: string;
+  distintividad: 'ALTA' | 'MEDIA' | 'BAJA';
+  similitudes_detectadas: string[];
+  problemas: string[];
+  sugerencias: string;
+  logo_origen: 'subido' | 'generado';
+  logo_alternativa_1_url: string;
+  logo_alternativa_2_url: string;
+}
+
+export async function analyzeLogo(data: {
+  estudio_id: string;
+  nombre_marca: string;
+  descripcion_negocio: string;
+  tiene_logo: boolean;
+  logo_base64?: string;
+}): Promise<LogoAnalysisResult> {
+  console.log('📤 Enviando logo para análisis:', { ...data, logo_base64: data.logo_base64 ? '[BASE64]' : undefined });
+  
+  const response = await fetch('https://orbia.app.n8n.cloud/webhook/analizar-logo', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
+
+  if (!response.ok) {
+    throw new Error('Error al analizar el logo');
+  }
+
+  const result = await response.json();
+  console.log('📥 Resultado análisis logo:', result);
+  
+  return result;
+}
+
+## FUNCIÓN PARA CONVERTIR IMAGEN A BASE64:
+
+function imageToBase64(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = error => reject(error);
+  });
+}
+
+## ACTUALIZAR App.tsx:
+
+Agregar la ruta:
+<Route path="/logo" component={Logo} />
+
+## ACTUALIZAR Results.tsx:
+
+El botón "Continuar con el registro" debe:
+1. Guardar el estudio_id en localStorage (ya debería estar)
+2. Navegar a /logo
+
+## DATOS QUE NECESITA EL MÓDULO 2:
+
+Del localStorage (guardados en Módulo 1):
+- orbia_last_result → contiene el estudio con su ID
+- orbia_last_input → contiene nombre_marca y que_vende
+
+## ESTILOS Y UX:
+
+- Drag & drop con borde punteado que cambia de color al arrastrar
+- Preview de imagen con opción de eliminar/cambiar
+- Loading states con animaciones suaves
+- Cards de logos generados con hover effect
+- Botones de selección claros
+- Mobile responsive
+- Usar componentes shadcn/ui existentes
+
+## COMPONENTES SUGERIDOS:
+
+1. LogoUploader.tsx - Componente de upload con drag & drop
+2. LogoPreview.tsx - Preview de la imagen
+3. LogoAnalysisResult.tsx - Muestra resultados del análisis
+4. LogoOptions.tsx - Muestra las 2 alternativas generadas
+5. Logo.tsx - Página principal que orquesta todo

@@ -4,6 +4,7 @@ import { Footer } from "@/components/layout/Footer";
 import Home from "@/pages/Home";
 import Classify from "@/pages/Classify";
 import Results from "@/pages/Results";
+import Logo from "@/pages/Logo";
 import NotFound from "@/pages/not-found";
 import { Toaster } from "@/components/ui/toaster";
 import { queryClient } from "./lib/queryClient";
@@ -21,6 +22,7 @@ function App() {
               <Route path="/" component={Home} />
               <Route path="/clasificar" component={Classify} />
               <Route path="/resultados" component={Results} />
+              <Route path="/logo" component={Logo} />
               <Route component={NotFound} />
             </Switch>
           </main>
