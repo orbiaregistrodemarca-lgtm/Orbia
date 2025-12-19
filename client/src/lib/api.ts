@@ -43,17 +43,16 @@ export interface ClassificationResult {
 }
 
 export interface LogoAnalysisResult {
-  success: boolean;
-  es_registrable: boolean;
-  nivel_riesgo: 'BAJO' | 'MEDIO' | 'ALTO';
-  analisis: string;
-  distintividad: 'ALTA' | 'MEDIA' | 'BAJA';
-  similitudes_detectadas: string[];
-  problemas: string[];
-  sugerencias: string;
+  logo_es_registrable: boolean;
+  logo_problemas: string | null;
+  logo_sugerencias: string | null;
+  logo_alternativa_1_url: string | null;
+  logo_alternativa_2_url: string | null;
   logo_origen: 'subido' | 'generado';
-  logo_alternativa_1_url: string;
-  logo_alternativa_2_url: string;
+  logo_distintividad: 'ALTA' | 'MEDIA' | 'BAJA' | 'NULA';
+  logo_nivel_riesgo: 'BAJO' | 'MEDIO' | 'ALTO';
+  tiene_elementos_prohibidos: boolean;
+  logo_analisis?: string | null;
 }
 
 export async function classifyBrand(data: {
@@ -179,17 +178,16 @@ export async function analyzeLogo(data: {
   console.log('📥 Resultado análisis logo:', result);
   
   return {
-    success: result.success ?? true,
-    es_registrable: result.es_registrable ?? false,
-    nivel_riesgo: result.nivel_riesgo || 'MEDIO',
-    analisis: result.analisis || '',
-    distintividad: result.distintividad || 'MEDIA',
-    similitudes_detectadas: result.similitudes_detectadas || [],
-    problemas: result.problemas || [],
-    sugerencias: result.sugerencias || '',
+    logo_es_registrable: result.logo_es_registrable ?? false,
+    logo_problemas: result.logo_problemas || null,
+    logo_sugerencias: result.logo_sugerencias || null,
+    logo_alternativa_1_url: result.logo_alternativa_1_url || null,
+    logo_alternativa_2_url: result.logo_alternativa_2_url || null,
     logo_origen: result.logo_origen || 'subido',
-    logo_alternativa_1_url: result.logo_alternativa_1_url || '',
-    logo_alternativa_2_url: result.logo_alternativa_2_url || '',
+    logo_distintividad: result.logo_distintividad || 'MEDIA',
+    logo_nivel_riesgo: result.logo_nivel_riesgo || 'MEDIO',
+    tiene_elementos_prohibidos: result.tiene_elementos_prohibidos ?? false,
+    logo_analisis: result.logo_analisis || null,
   };
 }
 

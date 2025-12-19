@@ -1,0 +1,58 @@
+Necesito actualizar mi componente de "Resultados de Análisis de Logo" (Módulo 2).
+
+Actualmente, mi backend (Supabase/n8n) devuelve un registro con el estado del análisis. Tengo dos escenarios críticos que la UI debe renderizar basándose en este JSON real que estoy recibiendo:
+
+ESTRUCTURA DE DATOS (JSON EJEMPLO):{
+  "logo_es_registrable": false,
+  "logo_problemas": "Bandera de México",
+  "logo_sugerencias": "Intenta con un nombre diferente.",
+  "logo_alternativa_1_url": null,
+  "logo_alternativa_2_url": null,
+  "logo_origen": "generado",
+  "logo_distintividad": "NULA",
+  "logo_nivel_riesgo": "ALTO",
+  "tiene_elementos_prohibidos": true
+}
+REQUERIMIENTOS DE LA INTERFAZ:
+
+Quiero que modifiques el componente para manejar estos dos estados condicionales:
+
+ESCENARIO A: ALERTA CRÍTICA (Cuando logo_es_registrable es false o logo_nivel_riesgo es "ALTO") Si se detectan problemas, NO muestres opciones de continuar. Muestra una tarjeta roja de alerta que despliegue claramente:
+
+Título: "Tu logo tiene problemas para registrarse".
+
+Badges/Etiquetas:
+
+Riesgo: Muestra el valor de logo_nivel_riesgo (ej. ALTO) en rojo.
+
+Distintividad: Muestra el valor de logo_distintividad (ej. NULA) en naranja/rojo.
+
+El Problema: Muestra el texto de logo_problemas (ej. "Bandera de México").
+
+La Sugerencia: Muestra logo_sugerencias.
+
+Acción: Un botón que diga "Probar otro logo" (que reinicie el proceso).
+
+ESCENARIO B: ÉXITO / GENERACIÓN (Cuando logo_alternativa_1_url tiene valor) Si el agente generó imágenes correctamente (URLs no nulas), muestra una interfaz de selección:
+
+Título: "Hemos generado propuestas registrables para ti".
+
+Grid de Imágenes: Muestra las imágenes de logo_alternativa_1_url y logo_alternativa_2_url.
+
+Interacción por Imagen:
+
+Al hacer hover o clic, permite "Seleccionar" una de las opciones (debe haber un estado visual de seleccionado, borde azul o check).
+
+Incluye un botón pequeño de "Descargar" para bajar la imagen localmente.
+
+Acción Principal: Un botón "Continuar" que esté deshabilitado hasta que seleccione una imagen. Al hacer clic, debe ejecutar una función handleContinue() para pasar a la siguiente fase (Fase 3: Datos del Usuario).
+
+NOTA TÉCNICA:
+
+Usa componentes de Lucide-React para los iconos (AlertTriangle, Download, Check).
+
+Asegúrate de manejar los nulos (null) para que la app no crashee.
+
+Usa estilos modernos y limpios con Tailwind.
+
+Por favor, genera el código completo del componente actualizado.

@@ -10,7 +10,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Upload, Palette, CheckCircle, XCircle, AlertTriangle, 
   ArrowRight, ArrowLeft, Loader2, X, Image as ImageIcon,
-  Sparkles, Shield, Eye
+  Sparkles, Download, Check, RefreshCw, ShieldAlert, Ban
 } from 'lucide-react';
 
 type PageState = 'choice' | 'upload' | 'generating' | 'analyzing' | 'results';
@@ -128,6 +128,13 @@ export default function Logo() {
     setPreviewUrl(null);
   };
 
+  const resetProcess = () => {
+    setResult(null);
+    setSelectedLogo(null);
+    clearUpload();
+    setPageState('choice');
+  };
+
   const analyzeUploadedLogo = async () => {
     if (!uploadedFile) return;
     
@@ -181,41 +188,79 @@ export default function Logo() {
     }
   };
 
-  const selectGeneratedLogo = (logoUrl: string) => {
+  const selectLogo = (logoUrl: string) => {
     setSelectedLogo(logoUrl);
-    localStorage.setItem('orbia_selected_logo', logoUrl);
   };
 
-  const continueToNextStep = () => {
+  const downloadImage = async (url: string, filename: string) => {
+    try {
+      const response = await fetch(url);
+      const blob = await response.blob();
+      const downloadUrl = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = downloadUrl;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(downloadUrl);
+      toast({
+        title: "Descarga iniciada",
+        description: "Tu logo se está descargando",
+      });
+    } catch {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "No se pudo descargar la imagen",
+      });
+    }
+  };
+
+  const handleContinue = () => {
+    if (!selectedLogo && !result?.logo_es_registrable) {
+      toast({
+        variant: "destructive",
+        title: "Selecciona un logo",
+        description: "Debes seleccionar una opción para continuar",
+      });
+      return;
+    }
+    
     if (result) {
       localStorage.setItem('orbia_logo_result', JSON.stringify(result));
       if (selectedLogo) {
         localStorage.setItem('orbia_selected_logo', selectedLogo);
       }
     }
+    
     toast({
       title: "Próximamente",
-      description: "El siguiente módulo estará disponible pronto",
+      description: "Fase 3: Datos del Usuario estará disponible pronto",
     });
   };
 
-  const getRiskColor = (risk: string) => {
+  const getRiskBadgeStyle = (risk: string) => {
     switch (risk) {
-      case 'BAJO': return 'bg-emerald-100 text-emerald-800';
-      case 'MEDIO': return 'bg-amber-100 text-amber-800';
-      case 'ALTO': return 'bg-rose-100 text-rose-800';
-      default: return 'bg-slate-100 text-slate-800';
+      case 'BAJO': return 'bg-emerald-100 text-emerald-800 border-emerald-300';
+      case 'MEDIO': return 'bg-amber-100 text-amber-800 border-amber-300';
+      case 'ALTO': return 'bg-rose-100 text-rose-800 border-rose-300';
+      default: return 'bg-slate-100 text-slate-800 border-slate-300';
     }
   };
 
-  const getDistintividadColor = (level: string) => {
+  const getDistintividadBadgeStyle = (level: string) => {
     switch (level) {
-      case 'ALTA': return 'bg-emerald-600';
-      case 'MEDIA': return 'bg-amber-500';
-      case 'BAJA': return 'bg-rose-500';
-      default: return 'bg-slate-500';
+      case 'ALTA': return 'bg-emerald-100 text-emerald-800 border-emerald-300';
+      case 'MEDIA': return 'bg-amber-100 text-amber-800 border-amber-300';
+      case 'BAJA': return 'bg-orange-100 text-orange-800 border-orange-300';
+      case 'NULA': return 'bg-rose-100 text-rose-800 border-rose-300';
+      default: return 'bg-slate-100 text-slate-800 border-slate-300';
     }
   };
+
+  const isAlertScenario = result && (!result.logo_es_registrable || result.logo_nivel_riesgo === 'ALTO');
+  const hasAlternatives = result && (result.logo_alternativa_1_url || result.logo_alternativa_2_url);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white dark:from-slate-950 dark:to-slate-900 py-8 px-4">
@@ -240,7 +285,11 @@ export default function Logo() {
             </p>
           </div>
           <OrbiaMascot 
-            state={pageState === 'analyzing' || pageState === 'generating' ? 'thinking' : 'idle'} 
+            state={
+              pageState === 'analyzing' || pageState === 'generating' ? 'thinking' : 
+              (result && isAlertScenario ? 'worried' : 
+              (result && result.logo_es_registrable ? 'happy' : 'idle'))
+            } 
             size="md" 
           />
         </motion.div>
@@ -265,10 +314,7 @@ export default function Logo() {
                 <CardContent className="pt-6">
                   <div className="grid md:grid-cols-2 gap-6">
                     
-                    <motion.div
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                    >
+                    <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
                       <Card 
                         className="cursor-pointer border-2 hover:border-secondary hover:shadow-lg transition-all h-full"
                         onClick={() => setPageState('upload')}
@@ -288,10 +334,7 @@ export default function Logo() {
                       </Card>
                     </motion.div>
 
-                    <motion.div
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                    >
+                    <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
                       <Card 
                         className="cursor-pointer border-2 hover:border-accent hover:shadow-lg transition-all h-full"
                         onClick={generateLogos}
@@ -412,7 +455,7 @@ export default function Logo() {
                       className="flex-1 py-6 text-lg bg-primary"
                       data-testid="button-analyze"
                     >
-                      <Eye className="w-5 h-5 mr-2" />
+                      <Sparkles className="w-5 h-5 mr-2" />
                       Analizar logo
                     </Button>
                     <Button
@@ -475,233 +518,281 @@ export default function Logo() {
               className="space-y-6"
             >
               
-              {/* Result Card - Registrable or Not */}
-              {result.logo_origen === 'subido' && (
+              {/* ESCENARIO A: ALERTA CRÍTICA */}
+              {isAlertScenario && !hasAlternatives && (
                 <motion.div
                   initial={{ opacity: 0, scale: 0.95 }}
                   animate={{ opacity: 1, scale: 1 }}
-                  className={`rounded-2xl border-2 p-6 ${
-                    result.es_registrable 
-                      ? 'bg-emerald-50 border-emerald-200' 
-                      : 'bg-rose-50 border-rose-200'
-                  }`}
+                  className="space-y-6"
                 >
-                  <div className="flex items-start gap-4">
-                    <div className="shrink-0">
-                      {result.es_registrable ? (
-                        <CheckCircle className="w-12 h-12 text-emerald-600" />
-                      ) : (
-                        <XCircle className="w-12 h-12 text-rose-600" />
+                  <Card className="border-2 border-rose-300 bg-rose-50 shadow-lg">
+                    <CardHeader className="pb-4">
+                      <div className="flex items-start gap-4">
+                        <div className="p-3 bg-rose-100 rounded-full">
+                          <XCircle className="w-10 h-10 text-rose-600" />
+                        </div>
+                        <div className="flex-1">
+                          <CardTitle className="text-2xl text-rose-800 mb-3">
+                            Tu logo tiene problemas para registrarse
+                          </CardTitle>
+                          <div className="flex flex-wrap gap-2">
+                            <Badge className={`border ${getRiskBadgeStyle(result.logo_nivel_riesgo)}`}>
+                              <ShieldAlert className="w-3 h-3 mr-1" />
+                              Riesgo: {result.logo_nivel_riesgo}
+                            </Badge>
+                            <Badge className={`border ${getDistintividadBadgeStyle(result.logo_distintividad)}`}>
+                              Distintividad: {result.logo_distintividad}
+                            </Badge>
+                            {result.tiene_elementos_prohibidos && (
+                              <Badge className="bg-red-600 text-white border-red-700">
+                                <Ban className="w-3 h-3 mr-1" />
+                                Elementos Prohibidos
+                              </Badge>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      {result.logo_problemas && (
+                        <div className="bg-white/60 rounded-lg p-4 border border-rose-200">
+                          <h4 className="font-semibold text-rose-800 mb-2 flex items-center gap-2">
+                            <AlertTriangle className="w-4 h-4" />
+                            Problema Detectado
+                          </h4>
+                          <p className="text-rose-700">{result.logo_problemas}</p>
+                        </div>
+                      )}
+                      
+                      {result.logo_sugerencias && (
+                        <div className="bg-white/60 rounded-lg p-4 border border-amber-200">
+                          <h4 className="font-semibold text-amber-800 mb-2 flex items-center gap-2">
+                            <Sparkles className="w-4 h-4" />
+                            Sugerencia
+                          </h4>
+                          <p className="text-amber-700">{result.logo_sugerencias}</p>
+                        </div>
+                      )}
+                      
+                      <Button 
+                        onClick={resetProcess}
+                        size="lg"
+                        className="w-full py-6 text-lg bg-rose-600 hover:bg-rose-700"
+                        data-testid="button-retry"
+                      >
+                        <RefreshCw className="w-5 h-5 mr-2" />
+                        Probar otro logo
+                      </Button>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              )}
+
+              {/* ESCENARIO B: ÉXITO / CON ALTERNATIVAS */}
+              {(result.logo_es_registrable || hasAlternatives) && (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className="space-y-6"
+                >
+                  {/* Success Header */}
+                  {result.logo_es_registrable && !hasAlternatives && (
+                    <Card className="border-2 border-emerald-300 bg-emerald-50 shadow-lg">
+                      <CardContent className="p-6">
+                        <div className="flex items-start gap-4">
+                          <div className="p-3 bg-emerald-100 rounded-full">
+                            <CheckCircle className="w-10 h-10 text-emerald-600" />
+                          </div>
+                          <div className="flex-1">
+                            <h3 className="text-2xl font-bold text-emerald-800 mb-2">
+                              ¡Tu logo es registrable!
+                            </h3>
+                            <div className="flex flex-wrap gap-2 mb-3">
+                              <Badge className={`border ${getRiskBadgeStyle(result.logo_nivel_riesgo)}`}>
+                                Riesgo: {result.logo_nivel_riesgo}
+                              </Badge>
+                              <Badge className={`border ${getDistintividadBadgeStyle(result.logo_distintividad)}`}>
+                                Distintividad: {result.logo_distintividad}
+                              </Badge>
+                            </div>
+                            {result.logo_analisis && (
+                              <p className="text-emerald-700">{result.logo_analisis}</p>
+                            )}
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )}
+
+                  {/* Alternativas generadas */}
+                  {hasAlternatives && (
+                    <div className="space-y-4">
+                      <div className="text-center">
+                        <h3 className="text-2xl font-bold text-primary mb-2 flex items-center justify-center gap-2">
+                          <Sparkles className="w-6 h-6 text-secondary" />
+                          {result.logo_origen === 'generado' 
+                            ? 'Hemos generado propuestas registrables para ti'
+                            : 'Te generamos alternativas registrables'
+                          }
+                        </h3>
+                        <p className="text-muted-foreground">
+                          Selecciona una opción para continuar
+                        </p>
+                      </div>
+
+                      <div className="grid md:grid-cols-2 gap-6">
+                        {result.logo_alternativa_1_url && (
+                          <motion.div whileHover={{ y: -4 }} className="relative">
+                            <Card 
+                              className={`cursor-pointer transition-all overflow-hidden ${
+                                selectedLogo === result.logo_alternativa_1_url 
+                                  ? 'ring-4 ring-secondary shadow-xl' 
+                                  : 'hover:shadow-lg border-2 hover:border-secondary/50'
+                              }`}
+                              onClick={() => selectLogo(result.logo_alternativa_1_url!)}
+                            >
+                              {selectedLogo === result.logo_alternativa_1_url && (
+                                <div className="absolute top-3 right-3 z-10 bg-secondary text-white rounded-full p-1.5">
+                                  <Check className="w-5 h-5" />
+                                </div>
+                              )}
+                              <CardContent className="p-6">
+                                <div className="bg-slate-100 rounded-lg p-6 mb-4 flex items-center justify-center min-h-[200px]">
+                                  <img 
+                                    src={result.logo_alternativa_1_url} 
+                                    alt="Opción 1" 
+                                    className="max-w-full max-h-[180px] object-contain"
+                                  />
+                                </div>
+                                <div className="flex gap-2">
+                                  <Button 
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      selectLogo(result.logo_alternativa_1_url!);
+                                    }}
+                                    className={`flex-1 ${
+                                      selectedLogo === result.logo_alternativa_1_url 
+                                        ? 'bg-secondary' 
+                                        : 'bg-primary'
+                                    }`}
+                                  >
+                                    {selectedLogo === result.logo_alternativa_1_url 
+                                      ? <><Check className="w-4 h-4 mr-2" /> Seleccionado</>
+                                      : 'Seleccionar'
+                                    }
+                                  </Button>
+                                  <Button
+                                    variant="outline"
+                                    size="icon"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      downloadImage(result.logo_alternativa_1_url!, `${brandName}-logo-1.png`);
+                                    }}
+                                  >
+                                    <Download className="w-4 h-4" />
+                                  </Button>
+                                </div>
+                              </CardContent>
+                            </Card>
+                          </motion.div>
+                        )}
+
+                        {result.logo_alternativa_2_url && (
+                          <motion.div whileHover={{ y: -4 }} className="relative">
+                            <Card 
+                              className={`cursor-pointer transition-all overflow-hidden ${
+                                selectedLogo === result.logo_alternativa_2_url 
+                                  ? 'ring-4 ring-secondary shadow-xl' 
+                                  : 'hover:shadow-lg border-2 hover:border-secondary/50'
+                              }`}
+                              onClick={() => selectLogo(result.logo_alternativa_2_url!)}
+                            >
+                              {selectedLogo === result.logo_alternativa_2_url && (
+                                <div className="absolute top-3 right-3 z-10 bg-secondary text-white rounded-full p-1.5">
+                                  <Check className="w-5 h-5" />
+                                </div>
+                              )}
+                              <CardContent className="p-6">
+                                <div className="bg-slate-100 rounded-lg p-6 mb-4 flex items-center justify-center min-h-[200px]">
+                                  <img 
+                                    src={result.logo_alternativa_2_url} 
+                                    alt="Opción 2" 
+                                    className="max-w-full max-h-[180px] object-contain"
+                                  />
+                                </div>
+                                <div className="flex gap-2">
+                                  <Button 
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      selectLogo(result.logo_alternativa_2_url!);
+                                    }}
+                                    className={`flex-1 ${
+                                      selectedLogo === result.logo_alternativa_2_url 
+                                        ? 'bg-secondary' 
+                                        : 'bg-primary'
+                                    }`}
+                                  >
+                                    {selectedLogo === result.logo_alternativa_2_url 
+                                      ? <><Check className="w-4 h-4 mr-2" /> Seleccionado</>
+                                      : 'Seleccionar'
+                                    }
+                                  </Button>
+                                  <Button
+                                    variant="outline"
+                                    size="icon"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      downloadImage(result.logo_alternativa_2_url!, `${brandName}-logo-2.png`);
+                                    }}
+                                  >
+                                    <Download className="w-4 h-4" />
+                                  </Button>
+                                </div>
+                              </CardContent>
+                            </Card>
+                          </motion.div>
+                        )}
+                      </div>
+
+                      {result.logo_origen === 'generado' && (
+                        <div className="text-center pt-2">
+                          <Button 
+                            variant="outline" 
+                            onClick={generateLogos}
+                            className="gap-2"
+                          >
+                            <RefreshCw className="w-4 h-4" />
+                            Generar más opciones
+                          </Button>
+                        </div>
                       )}
                     </div>
-                    <div className="flex-1">
-                      <h3 className={`text-2xl font-bold mb-2 ${
-                        result.es_registrable ? 'text-emerald-800' : 'text-rose-800'
-                      }`}>
-                        {result.es_registrable 
-                          ? '¡Tu logo es registrable!' 
-                          : 'Tu logo tiene problemas para registrarse'
-                        }
-                      </h3>
-                      <div className="flex flex-wrap gap-2 mb-4">
-                        <Badge className={getRiskColor(result.nivel_riesgo)}>
-                          Riesgo: {result.nivel_riesgo}
-                        </Badge>
-                        <Badge className={`text-white ${getDistintividadColor(result.distintividad)}`}>
-                          Distintividad: {result.distintividad}
-                        </Badge>
-                      </div>
-                      <p className={`text-sm leading-relaxed ${
-                        result.es_registrable ? 'text-emerald-700' : 'text-rose-700'
-                      }`}>
-                        {result.analisis}
-                      </p>
-                    </div>
+                  )}
+
+                  {/* Actions */}
+                  <div className="flex flex-col sm:flex-row gap-4 pt-4 border-t">
+                    <Button 
+                      size="lg" 
+                      className="flex-1 py-6 text-lg bg-primary shadow-xl hover:shadow-2xl transition-all disabled:opacity-50"
+                      onClick={handleContinue}
+                      disabled={!!hasAlternatives && !selectedLogo}
+                      data-testid="button-continue"
+                    >
+                      Continuar <ArrowRight className="ml-2 w-5 h-5" />
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="lg"
+                      className="py-6"
+                      onClick={resetProcess}
+                    >
+                      <ArrowLeft className="w-4 h-4 mr-2" />
+                      Probar otro logo
+                    </Button>
                   </div>
                 </motion.div>
               )}
 
-              {/* Problems List */}
-              {result.problemas && result.problemas.length > 0 && (
-                <Card className="border-rose-200">
-                  <CardHeader>
-                    <CardTitle className="text-rose-700 flex items-center gap-2">
-                      <AlertTriangle className="w-5 h-5" />
-                      Problemas Detectados
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <ul className="space-y-2">
-                      {result.problemas.map((problema, i) => (
-                        <li key={i} className="flex items-start gap-2 text-rose-700">
-                          <span className="text-rose-500 mt-1">•</span>
-                          {problema}
-                        </li>
-                      ))}
-                    </ul>
-                  </CardContent>
-                </Card>
-              )}
-
-              {/* Similarities */}
-              {result.similitudes_detectadas && result.similitudes_detectadas.length > 0 && (
-                <Card className="border-amber-200">
-                  <CardHeader>
-                    <CardTitle className="text-amber-700 flex items-center gap-2">
-                      <Eye className="w-5 h-5" />
-                      Similitudes con Logos Famosos
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="flex flex-wrap gap-2">
-                      {result.similitudes_detectadas.map((brand, i) => (
-                        <Badge key={i} variant="outline" className="border-amber-400 text-amber-700">
-                          {brand}
-                        </Badge>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
-
-              {/* Suggestions */}
-              {result.sugerencias && (
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-primary flex items-center gap-2">
-                      <Sparkles className="w-5 h-5" />
-                      Sugerencias de Mejora
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-muted-foreground">{result.sugerencias}</p>
-                  </CardContent>
-                </Card>
-              )}
-
-              {/* Generated Logo Alternatives */}
-              {(result.logo_alternativa_1_url || result.logo_alternativa_2_url) && (
-                <div className="space-y-4">
-                  <h3 className="text-xl font-bold text-primary flex items-center gap-2">
-                    <Palette className="w-5 h-5" />
-                    {result.logo_origen === 'generado' 
-                      ? 'Creamos estas propuestas para tu marca:' 
-                      : 'Te generamos alternativas registrables:'
-                    }
-                  </h3>
-                  
-                  <div className="grid md:grid-cols-2 gap-6">
-                    {result.logo_alternativa_1_url && (
-                      <motion.div whileHover={{ scale: 1.02 }}>
-                        <Card 
-                          className={`cursor-pointer transition-all ${
-                            selectedLogo === result.logo_alternativa_1_url 
-                              ? 'border-2 border-secondary shadow-lg' 
-                              : 'hover:shadow-lg'
-                          }`}
-                          onClick={() => selectGeneratedLogo(result.logo_alternativa_1_url)}
-                        >
-                          <CardContent className="p-6">
-                            <div className="bg-slate-100 rounded-lg p-4 mb-4 flex items-center justify-center min-h-[200px]">
-                              <img 
-                                src={result.logo_alternativa_1_url} 
-                                alt="Opción 1" 
-                                className="max-w-full max-h-[180px] object-contain"
-                              />
-                            </div>
-                            <Button 
-                              className={`w-full ${
-                                selectedLogo === result.logo_alternativa_1_url 
-                                  ? 'bg-secondary' 
-                                  : 'bg-primary'
-                              }`}
-                            >
-                              {selectedLogo === result.logo_alternativa_1_url 
-                                ? '✓ Seleccionado' 
-                                : 'Elegir este logo'
-                              }
-                            </Button>
-                          </CardContent>
-                        </Card>
-                      </motion.div>
-                    )}
-
-                    {result.logo_alternativa_2_url && (
-                      <motion.div whileHover={{ scale: 1.02 }}>
-                        <Card 
-                          className={`cursor-pointer transition-all ${
-                            selectedLogo === result.logo_alternativa_2_url 
-                              ? 'border-2 border-secondary shadow-lg' 
-                              : 'hover:shadow-lg'
-                          }`}
-                          onClick={() => selectGeneratedLogo(result.logo_alternativa_2_url)}
-                        >
-                          <CardContent className="p-6">
-                            <div className="bg-slate-100 rounded-lg p-4 mb-4 flex items-center justify-center min-h-[200px]">
-                              <img 
-                                src={result.logo_alternativa_2_url} 
-                                alt="Opción 2" 
-                                className="max-w-full max-h-[180px] object-contain"
-                              />
-                            </div>
-                            <Button 
-                              className={`w-full ${
-                                selectedLogo === result.logo_alternativa_2_url 
-                                  ? 'bg-secondary' 
-                                  : 'bg-primary'
-                              }`}
-                            >
-                              {selectedLogo === result.logo_alternativa_2_url 
-                                ? '✓ Seleccionado' 
-                                : 'Elegir este logo'
-                              }
-                            </Button>
-                          </CardContent>
-                        </Card>
-                      </motion.div>
-                    )}
-                  </div>
-
-                  {result.logo_origen === 'generado' && (
-                    <div className="text-center">
-                      <Button 
-                        variant="outline" 
-                        onClick={generateLogos}
-                        className="mt-4"
-                      >
-                        <Sparkles className="w-4 h-4 mr-2" />
-                        Generar más opciones
-                      </Button>
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {/* Actions */}
-              <div className="flex flex-col sm:flex-row gap-4 pt-6 border-t">
-                <Button 
-                  size="lg" 
-                  className="flex-1 bg-primary text-lg py-6 shadow-xl hover:shadow-2xl transition-all"
-                  onClick={continueToNextStep}
-                  data-testid="button-continue"
-                >
-                  Continuar al siguiente paso <ArrowRight className="ml-2 w-5 h-5" />
-                </Button>
-                <Button
-                  variant="outline"
-                  size="lg"
-                  className="py-6"
-                  onClick={() => {
-                    setResult(null);
-                    setSelectedLogo(null);
-                    clearUpload();
-                    setPageState('choice');
-                  }}
-                >
-                  <ArrowLeft className="w-4 h-4 mr-2" />
-                  Probar otro logo
-                </Button>
-              </div>
             </motion.div>
           )}
           
