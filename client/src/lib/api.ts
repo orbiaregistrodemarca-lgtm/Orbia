@@ -186,26 +186,34 @@ export async function analyzeLogo(data: {
   const result = Array.isArray(rawResult) ? rawResult[0] : rawResult;
   console.log('📥 Resultado análisis logo (completo):', result);
   
+  const analisis = result.analisis_grafico || {};
+  console.log('📊 Datos de analisis_grafico:', analisis);
+  
+  const problemas = analisis.problemas;
+  const problemasStr = Array.isArray(problemas) 
+    ? (problemas.length > 0 ? problemas.join(', ') : null)
+    : (problemas || null);
+  
   return {
-    logo_es_registrable: result.logo_es_registrable ?? false,
-    logo_problemas: result.logo_problemas || null,
-    logo_sugerencias: result.logo_sugerencias || null,
+    logo_es_registrable: analisis.es_registrable ?? result.logo_es_registrable ?? false,
+    logo_problemas: problemasStr,
+    logo_sugerencias: analisis.sugerencias || result.logo_sugerencias || null,
     logo_alternativa_1_url: result.logo_alternativa_1_url || null,
     logo_alternativa_2_url: result.logo_alternativa_2_url || null,
-    logo_origen: result.logo_origen || 'subido',
-    logo_distintividad: result.logo_distintividad || 'MEDIA',
-    logo_nivel_riesgo: result.logo_nivel_riesgo || 'MEDIO',
-    tiene_elementos_prohibidos: result.tiene_elementos_prohibidos ?? false,
-    logo_analisis: result.logo_analisis || null,
-    logo_tipo: result.logo_tipo || null,
-    logo_colores: result.logo_colores || null,
-    logo_elementos: result.logo_elementos || null,
-    logo_estilo: result.logo_estilo || null,
-    logo_similitudes: result.logo_similitudes || null,
-    logo_recomendacion: result.logo_recomendacion || null,
-    logo_justificacion: result.logo_justificacion || null,
-    logo_elementos_detectados: result.logo_elementos_detectados || null,
-    logo_descripcion: result.logo_descripcion || null,
+    logo_origen: data.tiene_logo ? 'subido' : 'generado',
+    logo_distintividad: analisis.distintividad || result.logo_distintividad || 'MEDIA',
+    logo_nivel_riesgo: analisis.nivel_riesgo || result.logo_nivel_riesgo || 'MEDIO',
+    tiene_elementos_prohibidos: analisis.tiene_elementos_prohibidos ?? result.tiene_elementos_prohibidos ?? false,
+    logo_analisis: analisis.analisis || result.logo_analisis || null,
+    logo_tipo: analisis.tipo || result.logo_tipo || null,
+    logo_colores: analisis.colores || result.logo_colores || null,
+    logo_elementos: analisis.elementos || result.logo_elementos || null,
+    logo_estilo: analisis.estilo || result.logo_estilo || null,
+    logo_similitudes: analisis.similitudes || result.logo_similitudes || null,
+    logo_recomendacion: analisis.recomendacion || result.logo_recomendacion || null,
+    logo_justificacion: analisis.justificacion_legal || result.logo_justificacion || null,
+    logo_elementos_detectados: analisis.elementos_detectados || result.logo_elementos_detectados || null,
+    logo_descripcion: analisis.descripcion || result.logo_descripcion || null,
   };
 }
 
