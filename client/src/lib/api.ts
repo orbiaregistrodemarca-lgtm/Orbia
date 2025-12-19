@@ -17,6 +17,12 @@ export interface ClassificationResult {
   sugerencias_nombres: string[];
   clases_adicionales?: string | null;
   
+  alerta_critica?: string | null;
+  requiere_verificacion_impi?: boolean;
+  recomendacion_experta?: string | null;
+  siguiente_paso?: string | null;
+  total_clases?: number;
+  
   clase_principal_descripcion?: string;
   clase_secundaria_1_numero?: number | null;
   clase_secundaria_1_nombre?: string | null;
@@ -24,6 +30,15 @@ export interface ClassificationResult {
   clase_secundaria_2_numero?: number | null;
   clase_secundaria_2_nombre?: string | null;
   clase_secundaria_2_descripcion?: string | null;
+  clase_secundaria_3_numero?: number | null;
+  clase_secundaria_3_nombre?: string | null;
+  clase_secundaria_3_descripcion?: string | null;
+  clase_secundaria_4_numero?: number | null;
+  clase_secundaria_4_nombre?: string | null;
+  clase_secundaria_4_descripcion?: string | null;
+  clase_secundaria_5_numero?: number | null;
+  clase_secundaria_5_nombre?: string | null;
+  clase_secundaria_5_descripcion?: string | null;
   clases_a_registrar?: string;
 }
 
@@ -74,7 +89,7 @@ export async function classifyBrand(data: {
     try { 
       palabrasClave = JSON.parse(rawData.palabras_clave); 
     } catch { 
-      palabrasClave = [rawData.palabras_clave]; 
+      palabrasClave = rawData.palabras_clave ? [rawData.palabras_clave] : []; 
     }
   } else if (Array.isArray(rawData.palabras_clave)) {
     palabrasClave = rawData.palabras_clave;
@@ -85,7 +100,7 @@ export async function classifyBrand(data: {
     try { 
       sugerenciasNombres = JSON.parse(rawData.sugerencias_nombres); 
     } catch { 
-      sugerenciasNombres = [rawData.sugerencias_nombres]; 
+      sugerenciasNombres = rawData.sugerencias_nombres ? [rawData.sugerencias_nombres] : []; 
     }
   } else if (Array.isArray(rawData.sugerencias_nombres)) {
     sugerenciasNombres = rawData.sugerencias_nombres;
@@ -107,6 +122,12 @@ export async function classifyBrand(data: {
     sugerencias_nombres: sugerenciasNombres,
     clases_adicionales: rawData.clases_adicionales || null,
     
+    alerta_critica: rawData.alerta_critica || null,
+    requiere_verificacion_impi: rawData.requiere_verificacion_impi || false,
+    recomendacion_experta: rawData.recomendacion_experta || null,
+    siguiente_paso: rawData.siguiente_paso || null,
+    total_clases: rawData.total_clases || 1,
+    
     clase_principal_descripcion: rawData.clase_principal_descripcion || rawData.descripcion_juridica || '',
     clase_secundaria_1_numero: rawData.clase_secundaria_1_numero || null,
     clase_secundaria_1_nombre: rawData.clase_secundaria_1_nombre || null,
@@ -114,6 +135,15 @@ export async function classifyBrand(data: {
     clase_secundaria_2_numero: rawData.clase_secundaria_2_numero || null,
     clase_secundaria_2_nombre: rawData.clase_secundaria_2_nombre || null,
     clase_secundaria_2_descripcion: rawData.clase_secundaria_2_descripcion || null,
+    clase_secundaria_3_numero: rawData.clase_secundaria_3_numero || null,
+    clase_secundaria_3_nombre: rawData.clase_secundaria_3_nombre || null,
+    clase_secundaria_3_descripcion: rawData.clase_secundaria_3_descripcion || null,
+    clase_secundaria_4_numero: rawData.clase_secundaria_4_numero || null,
+    clase_secundaria_4_nombre: rawData.clase_secundaria_4_nombre || null,
+    clase_secundaria_4_descripcion: rawData.clase_secundaria_4_descripcion || null,
+    clase_secundaria_5_numero: rawData.clase_secundaria_5_numero || null,
+    clase_secundaria_5_nombre: rawData.clase_secundaria_5_nombre || null,
+    clase_secundaria_5_descripcion: rawData.clase_secundaria_5_descripcion || null,
     clases_a_registrar: rawData.clases_a_registrar || null,
   };
 
@@ -170,4 +200,14 @@ export function imageToBase64(file: File): Promise<string> {
     reader.onload = () => resolve(reader.result as string);
     reader.onerror = error => reject(error);
   });
+}
+
+export function formatLegalDescription(text: string): string {
+  if (!text) return '';
+  return text
+    .split(';')
+    .map(item => item.trim())
+    .filter(item => item.length > 0)
+    .map(item => item.charAt(0).toUpperCase() + item.slice(1).toLowerCase())
+    .join('; ');
 }

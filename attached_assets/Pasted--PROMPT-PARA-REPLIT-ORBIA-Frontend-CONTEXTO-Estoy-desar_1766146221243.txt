@@ -1,0 +1,129 @@
+# PROMPT PARA REPLIT - ORBIA Frontend
+
+## CONTEXTO
+Estoy desarrollando ORBIA, una plataforma de registro de marcas en México. Mi backend (n8n) retorna un JSON con el análisis completo de una marca. Necesito que mi frontend muestre estos datos de forma organizada, profesional e interactiva.
+
+## JSON QUE RECIBO DEL BACKEND
+
+```json
+{
+  "id": "uuid",
+  "nombre_marca": "Xcaret",
+  "que_vende": "Descripción del negocio...",
+  "clase_niza": 41,
+  "nombre_clase": "Educación y entretenimiento",
+  "nivel_viabilidad": "ALTA | MEDIA | BAJA",
+  "alerta_critica": "Ninguna | Uso Comercial Detectado | Nombre Famoso | Descriptiva",
+  "analisis_riesgo": "Texto del análisis...",
+  "descripcion_juridica": "TÉRMINOS EN MAYÚSCULAS; SEPARADOS POR PUNTO Y COMA",
+  "justificacion_niza": "Explicación legal...",
+  "recomendacion_experta": "Consejo del abogado...",
+  "siguiente_paso": "Instrucción para el usuario...",
+  "requiere_verificacion_impi": true,
+  "es_nombre_famoso": false,
+  "sugerencias_nombres": "[\"Alt1\",\"Alt2\",\"Alt3\"]",
+  "total_clases": 5,
+  "clase_principal_descripcion": "DESCRIPCIÓN CLASE PRINCIPAL",
+  "clase_secundaria_1_numero": 43,
+  "clase_secundaria_1_nombre": "Servicios de restauración",
+  "clase_secundaria_1_descripcion": "DESCRIPCIÓN...",
+  "clase_secundaria_2_numero": 25,
+  "clase_secundaria_2_nombre": "Prendas de vestir",
+  "clase_secundaria_2_descripcion": "DESCRIPCIÓN...",
+  "clase_secundaria_3_numero": 28,
+  "clase_secundaria_3_nombre": "Juguetes",
+  "clase_secundaria_3_descripcion": "DESCRIPCIÓN...",
+  "clase_secundaria_4_numero": 16,
+  "clase_secundaria_4_nombre": "Material impreso",
+  "clase_secundaria_4_descripcion": "DESCRIPCIÓN...",
+  "clase_secundaria_5_numero": null,
+  "clase_secundaria_5_nombre": null,
+  "clase_secundaria_5_descripcion": null
+}
+```
+
+## LO QUE NECESITO
+
+Crea un componente React (o actualiza mi componente existente) que muestre los resultados del análisis de marca con las siguientes secciones:
+
+### 1. HEADER CON RESUMEN
+- Nombre de la marca grande y destacado
+- Badge de viabilidad con colores:
+  - ALTA = verde
+  - MEDIA = amarillo/naranja
+  - BAJA = rojo
+- Si hay alerta crítica, mostrar un banner de advertencia
+
+### 2. SECCIÓN: ANÁLISIS DE VIABILIDAD
+- Mostrar el nivel de viabilidad con un indicador visual (semáforo o barra)
+- Mostrar la alerta crítica si existe
+- Mostrar el análisis de riesgo en un card
+- Si requiere_verificacion_impi es true, mostrar nota: "Se recomienda verificar disponibilidad en IMPI"
+
+### 3. SECCIÓN: CLASIFICACIÓN NIZA
+- Card principal con la clase principal:
+  - Número de clase grande
+  - Nombre de la clase
+  - Descripción jurídica (formato legible, no todo en mayúsculas)
+- Cards secundarios para cada clase adicional (solo si existen):
+  - Mostrar clases 1-5 en un grid
+  - Cada card con número, nombre y descripción
+- Mostrar "Total de clases para protección: X"
+
+### 4. SECCIÓN: RECOMENDACIÓN DEL EXPERTO
+- Card destacado con el texto de recomendacion_experta
+- Mostrar siguiente_paso como call-to-action
+
+### 5. SECCIÓN: ALTERNATIVAS DE NOMBRE (solo si viabilidad es MEDIA o BAJA)
+- Parsear sugerencias_nombres (es un JSON string)
+- Mostrar cada alternativa como un chip/badge clickeable
+
+### 6. BOTONES DE ACCIÓN
+- "Continuar con registro" (clase principal)
+- "Protección Total (X clases)" - si hay clases secundarias
+- "Descargar análisis PDF"
+
+## ESTILOS
+- Usar Tailwind CSS
+- Colores profesionales (azul oscuro, blanco, acentos verdes/rojos)
+- Cards con sombras suaves
+- Tipografía clara y legible
+- Mobile-first responsive
+
+## EJEMPLO DE ESTRUCTURA JSX
+
+```jsx
+<div className="max-w-4xl mx-auto p-6">
+  {/* Header */}
+  <div className="bg-white rounded-xl shadow-lg p-6 mb-6">
+    <div className="flex justify-between items-center">
+      <h1 className="text-3xl font-bold">{data.nombre_marca}</h1>
+      <ViabilidadBadge nivel={data.nivel_viabilidad} />
+    </div>
+    {data.alerta_critica !== "Ninguna" && (
+      <AlertBanner tipo={data.alerta_critica} />
+    )}
+  </div>
+
+  {/* Análisis */}
+  <Section titulo="Análisis de Viabilidad">
+    ...
+  </Section>
+
+  {/* Clasificación */}
+  <Section titulo="Clasificación NIZA">
+    <ClasePrincipalCard clase={...} />
+    <ClasesSecundariasGrid clases={...} />
+  </Section>
+
+  {/* etc */}
+</div>
+```
+
+## NOTAS IMPORTANTES
+1. Parsear sugerencias_nombres con JSON.parse() ya que viene como string
+2. Las descripciones jurídicas vienen en MAYÚSCULAS - convertir a formato legible
+3. Solo mostrar clases secundarias si el número no es null
+4. El campo clases_a_registrar es un JSON string con toda la info estructurada
+
+Por favor genera el código completo del componente React con Tailwind CSS.
