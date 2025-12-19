@@ -518,54 +518,90 @@ export default function Logo() {
               className="space-y-6"
             >
               
-              {/* HEADER DEL ESTUDIO */}
+              {/* HEADER DEL ESTUDIO - ALERTA O ÉXITO */}
               <motion.div 
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
-                className={`rounded-2xl border-2 p-6 ${
+                className={`rounded-2xl border-3 p-6 shadow-lg ${
                   result.logo_es_registrable 
-                    ? 'bg-emerald-50 border-emerald-200' 
-                    : 'bg-rose-50 border-rose-200'
+                    ? 'bg-gradient-to-br from-emerald-50 to-green-50 border-emerald-400' 
+                    : 'bg-gradient-to-br from-rose-50 to-red-50 border-rose-400'
                 }`}
               >
                 <div className="flex items-start gap-4">
-                  <div className="shrink-0">
+                  <div className={`shrink-0 p-3 rounded-full ${
+                    result.logo_es_registrable ? 'bg-emerald-100' : 'bg-rose-100'
+                  }`}>
                     {result.logo_es_registrable ? (
-                      <CheckCircle className="w-12 h-12 text-emerald-600" />
+                      <CheckCircle className="w-10 h-10 text-emerald-600" />
                     ) : (
-                      <XCircle className="w-12 h-12 text-rose-600" />
+                      <XCircle className="w-10 h-10 text-rose-600" />
                     )}
                   </div>
                   <div className="flex-1">
-                    <h3 className={`text-2xl font-bold mb-3 ${
+                    <h3 className={`text-2xl font-bold mb-2 ${
                       result.logo_es_registrable ? 'text-emerald-800' : 'text-rose-800'
                     }`}>
                       {result.logo_es_registrable 
                         ? '¡Tu logo es registrable!' 
-                        : 'Tu logo tiene problemas para registrarse'
+                        : 'Tu logo NO es registrable'
                       }
                     </h3>
+                    
+                    {/* PROBLEMA PRINCIPAL - En negritas si existe */}
+                    {result.logo_problemas && !result.logo_es_registrable && (
+                      <div className="bg-rose-100/80 border border-rose-300 rounded-lg p-3 mb-4">
+                        <p className="font-bold text-rose-900 flex items-start gap-2">
+                          <AlertTriangle className="w-5 h-5 shrink-0 mt-0.5" />
+                          <span>Razón: {result.logo_problemas}</span>
+                        </p>
+                      </div>
+                    )}
+                    
+                    {/* BADGES DE RIESGO Y DISTINTIVIDAD */}
                     <div className="flex flex-wrap gap-2 mb-4">
-                      <Badge className={`border ${getRiskBadgeStyle(result.logo_nivel_riesgo)}`}>
-                        <ShieldAlert className="w-3 h-3 mr-1" />
-                        Riesgo: {result.logo_nivel_riesgo}
+                      <Badge className={`text-sm px-3 py-1 border-2 font-semibold ${
+                        result.logo_nivel_riesgo === 'ALTO' 
+                          ? 'bg-red-100 text-red-800 border-red-400' 
+                          : result.logo_nivel_riesgo === 'MEDIO'
+                          ? 'bg-orange-100 text-orange-800 border-orange-400'
+                          : 'bg-green-100 text-green-800 border-green-400'
+                      }`}>
+                        <ShieldAlert className="w-4 h-4 mr-1.5" />
+                        Riesgo: {result.logo_nivel_riesgo || 'N/A'}
                       </Badge>
-                      <Badge className={`border ${getDistintividadBadgeStyle(result.logo_distintividad)}`}>
-                        Distintividad: {result.logo_distintividad}
+                      <Badge className={`text-sm px-3 py-1 border-2 font-semibold ${
+                        result.logo_distintividad === 'ALTA' 
+                          ? 'bg-green-100 text-green-800 border-green-400'
+                          : result.logo_distintividad === 'MEDIA'
+                          ? 'bg-amber-100 text-amber-800 border-amber-400'
+                          : result.logo_distintividad === 'BAJA'
+                          ? 'bg-orange-100 text-orange-800 border-orange-400'
+                          : 'bg-red-100 text-red-800 border-red-400'
+                      }`}>
+                        Distintividad: {result.logo_distintividad || 'N/A'}
                       </Badge>
                       {result.tiene_elementos_prohibidos && (
-                        <Badge className="bg-red-600 text-white border-red-700">
-                          <Ban className="w-3 h-3 mr-1" />
+                        <Badge className="text-sm px-3 py-1 bg-red-600 text-white border-2 border-red-700 font-semibold">
+                          <Ban className="w-4 h-4 mr-1.5" />
                           Elementos Prohibidos
                         </Badge>
                       )}
                     </div>
+                    
+                    {/* ANÁLISIS COMPLETO */}
                     {result.logo_analisis && (
-                      <p className={`text-sm leading-relaxed ${
-                        result.logo_es_registrable ? 'text-emerald-700' : 'text-rose-700'
+                      <div className={`rounded-lg p-4 ${
+                        result.logo_es_registrable 
+                          ? 'bg-emerald-100/50 border border-emerald-200' 
+                          : 'bg-rose-100/50 border border-rose-200'
                       }`}>
-                        {result.logo_analisis}
-                      </p>
+                        <p className={`text-sm leading-relaxed ${
+                          result.logo_es_registrable ? 'text-emerald-800' : 'text-rose-800'
+                        }`}>
+                          {result.logo_analisis}
+                        </p>
+                      </div>
                     )}
                   </div>
                 </div>
