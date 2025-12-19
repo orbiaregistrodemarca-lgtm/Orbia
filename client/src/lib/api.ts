@@ -53,6 +53,15 @@ export interface LogoAnalysisResult {
   logo_nivel_riesgo: 'BAJO' | 'MEDIO' | 'ALTO';
   tiene_elementos_prohibidos: boolean;
   logo_analisis?: string | null;
+  logo_tipo?: string | null;
+  logo_colores?: string | null;
+  logo_elementos?: string | null;
+  logo_estilo?: string | null;
+  logo_similitudes?: string | null;
+  logo_recomendacion?: string | null;
+  logo_justificacion?: string | null;
+  logo_elementos_detectados?: string | null;
+  logo_descripcion?: string | null;
 }
 
 export async function classifyBrand(data: {
@@ -175,7 +184,7 @@ export async function analyzeLogo(data: {
 
   const rawResult = await response.json();
   const result = Array.isArray(rawResult) ? rawResult[0] : rawResult;
-  console.log('📥 Resultado análisis logo:', result);
+  console.log('📥 Resultado análisis logo (completo):', result);
   
   return {
     logo_es_registrable: result.logo_es_registrable ?? false,
@@ -188,6 +197,15 @@ export async function analyzeLogo(data: {
     logo_nivel_riesgo: result.logo_nivel_riesgo || 'MEDIO',
     tiene_elementos_prohibidos: result.tiene_elementos_prohibidos ?? false,
     logo_analisis: result.logo_analisis || null,
+    logo_tipo: result.logo_tipo || null,
+    logo_colores: result.logo_colores || null,
+    logo_elementos: result.logo_elementos || null,
+    logo_estilo: result.logo_estilo || null,
+    logo_similitudes: result.logo_similitudes || null,
+    logo_recomendacion: result.logo_recomendacion || null,
+    logo_justificacion: result.logo_justificacion || null,
+    logo_elementos_detectados: result.logo_elementos_detectados || null,
+    logo_descripcion: result.logo_descripcion || null,
   };
 }
 
