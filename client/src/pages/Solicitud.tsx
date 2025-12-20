@@ -8,23 +8,18 @@ import { useToast } from '@/hooks/use-toast';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   FileText, ArrowRight, ArrowLeft, Loader2, CheckCircle, 
-  AlertCircle, Download, ExternalLink, Briefcase,
+  AlertCircle, ExternalLink, Briefcase,
   User, MapPin, Mail, Phone, Tag, Shield, Image as ImageIcon
 } from 'lucide-react';
 
 const WEBHOOK_URL = 'https://orbia.app.n8n.cloud/webhook/generar-solicitud';
 
-interface DocumentosResponse {
-  html?: string;
-  pdf?: string;
-  instrucciones?: string;
-}
-
 interface GenerarResponse {
   success: boolean;
   estudio_id?: string;
   mensaje?: string;
-  documentos?: DocumentosResponse;
+  documento_url?: string;
+  instrucciones?: string;
   siguiente_paso?: string;
   errores?: string[];
   campos_faltantes?: string[];
@@ -44,7 +39,8 @@ export default function Solicitud() {
   const [descripcionJuridica, setDescripcionJuridica] = useState('');
   const [nivelViabilidad, setNivelViabilidad] = useState('');
   const [titularData, setTitularData] = useState<any>(null);
-  const [documentos, setDocumentos] = useState<DocumentosResponse | null>(null);
+  const [documentoUrl, setDocumentoUrl] = useState<string | null>(null);
+  const [instrucciones, setInstrucciones] = useState<string | null>(null);
   const [errores, setErrores] = useState<string[]>([]);
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
 
@@ -109,7 +105,8 @@ export default function Solicitud() {
       console.log('📥 Respuesta del webhook:', result);
 
       if (result.success) {
-        setDocumentos(result.documentos || null);
+        setDocumentoUrl(result.documento_url || null);
+        setInstrucciones(result.instrucciones || null);
         setPageState('success');
         toast({
           title: "Solicitud generada",
@@ -379,67 +376,53 @@ export default function Solicitud() {
         </CardContent>
       </Card>
 
-      {documentos && (
+      {documentoUrl && (
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <FileText className="w-5 h-5 text-primary" />
-              Documentos Generados
+              Tu Solicitud IMPI
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            {documentos.html && (
-              <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg border">
-                <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                    <FileText className="w-6 h-6 text-blue-600" />
-                  </div>
-                  <div>
-                    <p className="font-medium">Solicitud IMPI</p>
-                    <p className="text-sm text-muted-foreground">Documento HTML</p>
-                  </div>
+            <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg border">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                  <FileText className="w-6 h-6 text-blue-600" />
                 </div>
-                <Button
-                  onClick={() => window.open(documentos.html, '_blank')}
-                  data-testid="button-view-document"
-                >
-                  <ExternalLink className="w-4 h-4 mr-2" />
-                  Ver Documento
-                </Button>
+                <div>
+                  <p className="font-medium">Solicitud IMPI - {nombreMarca}</p>
+                  <p className="text-sm text-muted-foreground">Documento listo para descargar</p>
+                </div>
               </div>
-            )}
+              <Button
+                onClick={() => window.open(documentoUrl, '_blank')}
+                data-testid="button-view-document"
+              >
+                <ExternalLink className="w-4 h-4 mr-2" />
+                Abrir
+              </Button>
+            </div>
 
-            {documentos.instrucciones && (
+            {instrucciones && (
               <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg">
                 <div className="flex items-start gap-2">
                   <AlertCircle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
                   <div>
                     <p className="font-medium text-amber-800">Instrucciones para PDF:</p>
-                    <p className="text-sm text-amber-700 mt-1">{documentos.instrucciones}</p>
+                    <p className="text-sm text-amber-700 mt-1">{instrucciones}</p>
                   </div>
                 </div>
               </div>
-            )}
-
-            {documentos.pdf && (
-              <Button
-                variant="outline"
-                className="w-full py-6"
-                onClick={() => window.open(documentos.pdf, '_blank')}
-                data-testid="button-download-pdf"
-              >
-                <Download className="w-5 h-5 mr-2" />
-                Descargar PDF
-              </Button>
             )}
           </CardContent>
         </Card>
       )}
 
       <div className="flex flex-col sm:flex-row gap-4">
-        {documentos?.html && (
+        {documentoUrl && (
           <Button
-            onClick={() => window.open(documentos.html, '_blank')}
+            onClick={() => window.open(documentoUrl, '_blank')}
             className="flex-1 py-6 text-lg bg-primary"
             data-testid="button-open-document"
           >
