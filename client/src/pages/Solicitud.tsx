@@ -8,7 +8,7 @@ import { useToast } from '@/hooks/use-toast';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   FileText, ArrowRight, ArrowLeft, Loader2, CheckCircle, 
-  AlertCircle, Download, ExternalLink, CreditCard, Briefcase,
+  AlertCircle, Download, ExternalLink, Briefcase,
   User, MapPin, Mail, Phone, Tag, Shield, Image as ImageIcon
 } from 'lucide-react';
 
@@ -437,21 +437,24 @@ export default function Solicitud() {
       )}
 
       <div className="flex flex-col sm:flex-row gap-4">
-        <Button
-          onClick={() => setLocation('/pago')}
-          className="flex-1 py-6 text-lg bg-primary"
-          data-testid="button-continue-pago"
-        >
-          <CreditCard className="w-5 h-5 mr-2" />
-          Continuar al Pago
-          <ArrowRight className="w-5 h-5 ml-2" />
-        </Button>
+        {documentos?.html && (
+          <Button
+            onClick={() => window.open(documentos.html, '_blank')}
+            className="flex-1 py-6 text-lg bg-primary"
+            data-testid="button-open-document"
+          >
+            <ExternalLink className="w-5 h-5 mr-2" />
+            Abrir mi Solicitud
+          </Button>
+        )}
         
         <Button
           variant="outline"
           onClick={() => setPageState('summary')}
           className="py-6"
+          data-testid="button-view-summary"
         >
+          <ArrowLeft className="w-4 h-4 mr-2" />
           Ver resumen
         </Button>
       </div>
