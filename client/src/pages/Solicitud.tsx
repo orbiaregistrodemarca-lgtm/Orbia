@@ -8,7 +8,7 @@ import { useToast } from '@/hooks/use-toast';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   FileText, ArrowRight, ArrowLeft, Loader2, CheckCircle, 
-  AlertCircle, ExternalLink, Briefcase,
+  AlertCircle, ExternalLink, Download, Briefcase,
   User, MapPin, Mail, Phone, Tag, Shield, Image as ImageIcon
 } from 'lucide-react';
 
@@ -419,22 +419,40 @@ export default function Solicitud() {
         </Card>
       )}
 
-      <div className="flex flex-col sm:flex-row gap-4">
+      <div className="flex flex-col gap-3">
         {documentoUrl && (
-          <Button
-            onClick={() => window.open(documentoUrl, '_blank')}
-            className="flex-1 py-6 text-lg bg-primary"
-            data-testid="button-open-document"
-          >
-            <ExternalLink className="w-5 h-5 mr-2" />
-            Abrir mi Solicitud
-          </Button>
+          <>
+            <Button
+              onClick={() => window.open(documentoUrl, '_blank')}
+              className="w-full py-6 text-lg bg-primary"
+              data-testid="button-open-document"
+            >
+              <ExternalLink className="w-5 h-5 mr-2" />
+              Abrir mi Solicitud
+            </Button>
+            <Button
+              variant="outline"
+              className="w-full py-6 text-lg"
+              onClick={() => {
+                const link = document.createElement('a');
+                link.href = documentoUrl;
+                link.download = `Solicitud_IMPI_${nombreMarca.replace(/\s+/g, '_')}.html`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+              }}
+              data-testid="button-download-document"
+            >
+              <Download className="w-5 h-5 mr-2" />
+              Descargar Documento
+            </Button>
+          </>
         )}
         
         <Button
-          variant="outline"
+          variant="ghost"
           onClick={() => setPageState('summary')}
-          className="py-6"
+          className="py-4"
           data-testid="button-view-summary"
         >
           <ArrowLeft className="w-4 h-4 mr-2" />
