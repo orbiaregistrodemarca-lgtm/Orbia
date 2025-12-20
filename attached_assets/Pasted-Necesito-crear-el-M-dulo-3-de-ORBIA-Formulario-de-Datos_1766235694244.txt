@@ -1,0 +1,128 @@
+Necesito crear el Módulo 3 de ORBIA: Formulario de Datos del Titular.
+
+## CONTEXTO:
+ORBIA es una plataforma de registro de marcas. Ya tenemos:
+- M1: Clasificación de marca (el usuario ya tiene un estudio_id guardado)
+- M2: Análisis de logo
+
+Ahora necesito M3: Un formulario para capturar los datos del titular de la marca.
+
+## LO QUE NECESITO:
+
+### 1. FORMULARIO CON DOS OPCIONES:
+El usuario debe elegir si es:
+- Persona Física (individuo)
+- Persona Moral (empresa)
+
+### 2. CAMPOS PARA PERSONA FÍSICA:
+- Nombre completo (obligatorio)
+- Nacionalidad (default: "Mexicana")
+- Domicilio completo (obligatorio)
+- Código Postal
+- Ciudad
+- Estado (dropdown con estados de México)
+- País (default: "México")
+- Email (obligatorio)
+- Teléfono
+- RFC (13 caracteres)
+- CURP (18 caracteres)
+
+### 3. CAMPOS PARA PERSONA MORAL:
+- Razón Social (obligatorio) - ejemplo: "Empresa XYZ S.A. de C.V."
+- Nacionalidad (default: "Mexicana")
+- Domicilio completo (obligatorio)
+- Código Postal
+- Ciudad
+- Estado
+- País (default: "México")
+- Email (obligatorio)
+- Teléfono
+- RFC (12 caracteres para empresas)
+- Nombre del Representante Legal
+
+### 4. SECCIÓN OPCIONAL - APODERADO:
+- Checkbox: "¿Tienes un apoderado legal?"
+- Si marca sí, mostrar:
+  - Nombre del apoderado
+  - Domicilio del apoderado
+
+### 5. AL ENVIAR EL FORMULARIO:
+Hacer un POST a este webhook: https://orbia.app.n8n.cloud/webhook/datos-titular
+Con este formato JSON:
+```json
+{
+  "estudio_id": "[el estudio_id que ya tenemos del M1]",
+  "titular": {
+    "tipo": "persona_fisica",
+    "nombre": "Juan Pérez López",
+    "nacionalidad": "Mexicana",
+    "domicilio": "Calle 60 #123, Col. Centro",
+    "codigo_postal": "97000",
+    "ciudad": "Mérida",
+    "estado": "Yucatán",
+    "pais": "México",
+    "email": "juan@email.com",
+    "telefono": "9991234567",
+    "rfc": "PELJ800101ABC",
+    "curp": "PELJ800101HYNRPN09"
+  },
+  "apoderado": {
+    "nombre": "Lic. María García",
+    "domicilio": "Av. Colón 456"
+  }
+}
+```
+
+Para persona moral, cambiar:
+```json
+{
+  "estudio_id": "[uuid]",
+  "titular": {
+    "tipo": "persona_moral",
+    "razon_social": "Empresa XYZ S.A. de C.V.",
+    "nacionalidad": "Mexicana",
+    "domicilio": "Av. Reforma 500",
+    "codigo_postal": "06600",
+    "ciudad": "CDMX",
+    "estado": "Ciudad de México",
+    "pais": "México",
+    "email": "legal@empresa.com",
+    "telefono": "5512345678",
+    "rfc": "EXY800101XYZ",
+    "representante_legal": "Ing. Roberto Martínez"
+  }
+}
+```
+
+### 6. RESPUESTA DEL WEBHOOK:
+
+ÉXITO (mostrar mensaje de confirmación):
+```json
+{
+  "success": true,
+  "mensaje": "Datos del titular guardados correctamente",
+  "siguiente_paso": "generar_solicitud"
+}
+```
+
+ERROR (mostrar los errores):
+```json
+{
+  "success": false,
+  "errores": ["Se requiere domicilio del titular"],
+  "mensaje": "Datos incompletos o inválidos"
+}
+```
+
+### 7. DISEÑO:
+- Mantener el mismo estilo visual que M1 y M2
+- Mostrar indicador de progreso: Paso 3 de 4
+- Botón "Guardar y Continuar" al final
+- Después de guardar exitosamente, mostrar botón para ir al M4 (Generar Solicitud)
+
+### 8. VALIDACIONES EN FRONTEND:
+- RFC persona física: 13 caracteres (4 letras + 6 números + 3 alfanuméricos)
+- RFC persona moral: 12 caracteres (3 letras + 6 números + 3 alfanuméricos)
+- CURP: 18 caracteres
+- Email: formato válido
+- Campos obligatorios marcados con *
