@@ -235,10 +235,7 @@ export default function Logo() {
       }
     }
     
-    toast({
-      title: "Próximamente",
-      description: "Fase 3: Datos del Usuario estará disponible pronto",
-    });
+    setLocation('/titular');
   };
 
   const getRiskBadgeStyle = (risk: string) => {
