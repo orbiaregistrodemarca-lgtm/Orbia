@@ -12,7 +12,7 @@ import {
   User, MapPin, Mail, Phone, Tag, Shield, Image as ImageIcon
 } from 'lucide-react';
 
-const WEBHOOK_URL = 'https://orbia.app.n8n.cloud/webhook/generar-solicitud';
+const WEBHOOK_URL = 'https://n8n.srv1175451.hstgr.cloud/webhook/generar-solicitud';
 
 interface GenerarResponse {
   success: boolean;

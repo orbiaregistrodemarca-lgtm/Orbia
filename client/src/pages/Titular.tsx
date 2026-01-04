@@ -22,7 +22,7 @@ const ESTADOS_MEXICO = [
   "Sinaloa", "Sonora", "Tabasco", "Tamaulipas", "Tlaxcala", "Veracruz", "Yucatán", "Zacatecas"
 ];
 
-const WEBHOOK_TITULAR = 'https://orbia.app.n8n.cloud/webhook/datos-titular';
+const WEBHOOK_TITULAR = 'https://n8n.srv1175451.hstgr.cloud/webhook/datos-titular';
 
 type TipoPersona = 'persona_fisica' | 'persona_moral';
 
