@@ -1,4 +1,4 @@
-const WEBHOOK_URL = 'https://orbia.app.n8n.cloud/webhook/clasificar-marca';
+const WEBHOOK_URL = 'https://n8n.srv1175451.hstgr.cloud/webhook/clasificar-marca';
 const LOGO_WEBHOOK_URL = 'https://orbia.app.n8n.cloud/webhook/analizar-logo-v2';
 
 export interface ClassificationResult {
