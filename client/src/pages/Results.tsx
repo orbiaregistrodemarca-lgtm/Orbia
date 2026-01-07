@@ -476,7 +476,7 @@ export default function Results() {
             className="space-y-4 pt-6 border-t"
           >
             <div className="flex flex-col sm:flex-row gap-4">
-              <Link href="/logo" className="flex-1">
+              <Link href="/busqueda-impi" className="flex-1">
                 <Button 
                   size="lg" 
                   className="w-full bg-primary text-lg py-6 shadow-xl hover:shadow-2xl hover:-translate-y-1 transition-all" 

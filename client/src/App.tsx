@@ -4,6 +4,7 @@ import { Footer } from "@/components/layout/Footer";
 import Home from "@/pages/Home";
 import Classify from "@/pages/Classify";
 import Results from "@/pages/Results";
+import BusquedaIMPI from "@/pages/BusquedaIMPI";
 import Logo from "@/pages/Logo";
 import Titular from "@/pages/Titular";
 import Solicitud from "@/pages/Solicitud";
@@ -24,6 +25,7 @@ function App() {
               <Route path="/" component={Home} />
               <Route path="/clasificar" component={Classify} />
               <Route path="/resultados" component={Results} />
+              <Route path="/busqueda-impi" component={BusquedaIMPI} />
               <Route path="/logo" component={Logo} />
               <Route path="/titular" component={Titular} />
               <Route path="/solicitud" component={Solicitud} />

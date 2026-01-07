@@ -1,0 +1,334 @@
+// ============================================
+// COMPONENTE: BusquedaIMPI.tsx
+// UBICACIÓN: src/components/BusquedaIMPI.tsx
+// DESCRIPCIÓN: Sección entre M1 y M2 que busca marcas en el IMPI
+// ============================================
+
+import React, { useState, useEffect } from 'react';
+
+interface MarcaEncontrada {
+  denominacion: string;
+  expediente: string;
+  registro: string;
+  titular: string;
+  clase: string;
+  estado: string;
+  tipo: string;
+}
+
+interface AnalisisConflictos {
+  nivel_riesgo: 'ALTO' | 'MEDIO' | 'BAJO' | 'NINGUNO';
+  score: number;
+  resumen: string;
+  detalle: string;
+  marcas_conflictivas: Array<{
+    nombre: string;
+    expediente: string;
+    razon_conflicto: string;
+  }>;
+  recomendaciones: string[];
+  puede_continuar: boolean;
+}
+
+interface BusquedaIMPIProps {
+  estudioId: string;
+  nombreMarca: string;
+  claseNiza: number;
+  onComplete: (resultado: any) => void;
+  onSkip: () => void;
+}
+
+const BusquedaIMPI: React.FC<BusquedaIMPIProps> = ({
+  estudioId,
+  nombreMarca,
+  claseNiza,
+  onComplete,
+  onSkip
+}) => {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [resultado, setResultado] = useState<any>(null);
+  const [progreso, setProgreso] = useState(0);
+
+  const buscarEnIMPI = async () => {
+    setLoading(true);
+    setError(null);
+    setProgreso(10);
+
+    try {
+      // Simular progreso mientras espera
+      const progresoInterval = setInterval(() => {
+        setProgreso(prev => Math.min(prev + 10, 90));
+      }, 1000);
+
+      const response = await fetch('https://orbia.app.n8n.cloud/webhook/buscar-impi', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          estudio_id: estudioId,
+          nombre_marca: nombreMarca,
+          clase_niza: claseNiza
+        })
+      });
+
+      clearInterval(progresoInterval);
+      setProgreso(100);
+
+      if (!response.ok) {
+        throw new Error('Error al buscar en IMPI');
+      }
+
+      const data = await response.json();
+      setResultado(data);
+      
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Error desconocido');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    // Auto-iniciar búsqueda al montar el componente
+    buscarEnIMPI();
+  }, []);
+
+  const getNivelRiesgoColor = (nivel: string) => {
+    switch (nivel) {
+      case 'ALTO': return 'bg-red-100 text-red-800 border-red-300';
+      case 'MEDIO': return 'bg-yellow-100 text-yellow-800 border-yellow-300';
+      case 'BAJO': return 'bg-blue-100 text-blue-800 border-blue-300';
+      case 'NINGUNO': return 'bg-green-100 text-green-800 border-green-300';
+      default: return 'bg-gray-100 text-gray-800 border-gray-300';
+    }
+  };
+
+  const getNivelRiesgoIcon = (nivel: string) => {
+    switch (nivel) {
+      case 'ALTO': return '🚨';
+      case 'MEDIO': return '⚠️';
+      case 'BAJO': return '📝';
+      case 'NINGUNO': return '✅';
+      default: return '❓';
+    }
+  };
+
+  // Estado: Cargando
+  if (loading) {
+    return (
+      <div className="bg-white rounded-xl shadow-lg p-6 mb-6">
+        <h2 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+          🔍 Búsqueda en Registro IMPI
+        </h2>
+        
+        <div className="text-center py-8">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600 mb-2">
+            Buscando "<span className="font-semibold">{nombreMarca}</span>" en la base de datos del IMPI...
+          </p>
+          <p className="text-sm text-gray-500">
+            Esto puede tomar 10-20 segundos
+          </p>
+          
+          {/* Barra de progreso */}
+          <div className="w-full bg-gray-200 rounded-full h-2.5 mt-4 max-w-md mx-auto">
+            <div 
+              className="bg-blue-600 h-2.5 rounded-full transition-all duration-500"
+              style={{ width: `${progreso}%` }}
+            ></div>
+          </div>
+          <p className="text-xs text-gray-400 mt-2">{progreso}%</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Estado: Error
+  if (error) {
+    return (
+      <div className="bg-white rounded-xl shadow-lg p-6 mb-6">
+        <h2 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+          🔍 Búsqueda en Registro IMPI
+        </h2>
+        
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
+          <p className="text-red-700">❌ {error}</p>
+        </div>
+        
+        <div className="flex gap-3">
+          <button
+            onClick={buscarEnIMPI}
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+          >
+            Reintentar
+          </button>
+          <button
+            onClick={onSkip}
+            className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300"
+          >
+            Continuar sin verificar
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Estado: Con resultados
+  if (resultado) {
+    const analisis = resultado.analisis;
+    const busqueda = resultado.resultado_busqueda;
+
+    return (
+      <div className="bg-white rounded-xl shadow-lg p-6 mb-6">
+        <h2 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+          🔍 Búsqueda en Registro IMPI
+        </h2>
+
+        {/* Resultado principal */}
+        <div className={`rounded-lg border-2 p-4 mb-4 ${getNivelRiesgoColor(analisis.nivel_riesgo)}`}>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className="text-2xl">{getNivelRiesgoIcon(analisis.nivel_riesgo)}</span>
+              <div>
+                <p className="font-bold text-lg">
+                  RIESGO {analisis.nivel_riesgo}
+                </p>
+                <p className="text-sm opacity-80">
+                  Score: {analisis.score}/100
+                </p>
+              </div>
+            </div>
+            <div className="text-right">
+              <p className="text-sm">
+                {busqueda.total_marcas_encontradas} marca(s) encontrada(s)
+              </p>
+              {busqueda.marca_exacta_existe && (
+                <p className="text-xs font-semibold">
+                  ⚠️ Marca exacta existe
+                </p>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Resumen del análisis */}
+        <div className="bg-gray-50 rounded-lg p-4 mb-4">
+          <p className="text-gray-700">{analisis.resumen}</p>
+        </div>
+
+        {/* Marcas encontradas */}
+        {busqueda.marcas_similares && busqueda.marcas_similares.length > 0 && (
+          <div className="mb-4">
+            <h3 className="font-semibold text-gray-800 mb-2">
+              📋 Marcas encontradas en IMPI:
+            </h3>
+            <div className="space-y-2 max-h-60 overflow-y-auto">
+              {busqueda.marcas_similares.map((marca: MarcaEncontrada, index: number) => (
+                <div 
+                  key={index}
+                  className="border border-gray-200 rounded-lg p-3 bg-white"
+                >
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <p className="font-bold text-gray-800">{marca.denominacion || 'Sin nombre'}</p>
+                      <p className="text-sm text-gray-600">
+                        Expediente: {marca.expediente || 'N/A'}
+                      </p>
+                      <p className="text-sm text-gray-600">
+                        Titular: {marca.titular || 'N/A'}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <span className="inline-block px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded">
+                        Clase {marca.clase || 'N/A'}
+                      </span>
+                      <p className="text-xs text-gray-500 mt-1">
+                        {marca.estado || 'Estado desconocido'}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Recomendaciones */}
+        {analisis.recomendaciones && analisis.recomendaciones.length > 0 && (
+          <div className="bg-blue-50 rounded-lg p-4 mb-4">
+            <h3 className="font-semibold text-blue-800 mb-2">💡 Recomendaciones:</h3>
+            <ul className="list-disc list-inside text-blue-700 text-sm space-y-1">
+              {analisis.recomendaciones.map((rec: string, index: number) => (
+                <li key={index}>{rec}</li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {/* Botones de acción */}
+        <div className="flex gap-3 mt-4">
+          {analisis.puede_continuar ? (
+            <button
+              onClick={() => onComplete(resultado)}
+              className="flex-1 px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 font-semibold"
+            >
+              ✅ Continuar con el registro
+            </button>
+          ) : (
+            <>
+              <button
+                onClick={() => onComplete(resultado)}
+                className="flex-1 px-4 py-3 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 font-semibold"
+              >
+                ⚠️ Continuar de todas formas
+              </button>
+              <button
+                onClick={onSkip}
+                className="flex-1 px-4 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 font-semibold"
+              >
+                🔄 Cambiar nombre
+              </button>
+            </>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  return null;
+};
+
+export default BusquedaIMPI;
+
+
+// ============================================
+// CÓMO INTEGRARLO EN TU FLUJO PRINCIPAL
+// ============================================
+// 
+// En tu componente principal (donde manejas los pasos), después del M1:
+//
+// import BusquedaIMPI from './components/BusquedaIMPI';
+//
+// // En tu estado:
+// const [paso, setPaso] = useState(1);
+// const [estudioData, setEstudioData] = useState(null);
+//
+// // En tu render, después del paso 1 (clasificación):
+// {paso === 1.5 && estudioData && (
+//   <BusquedaIMPI
+//     estudioId={estudioData.estudio_id}
+//     nombreMarca={estudioData.nombre_marca}
+//     claseNiza={estudioData.clasificacion.clase_principal.numero}
+//     onComplete={(resultado) => {
+//       // Guardar resultado y pasar al siguiente paso
+//       setEstudioData({ ...estudioData, busquedaIMPI: resultado });
+//       setPaso(2);
+//     }}
+//     onSkip={() => {
+//       // Volver al paso 1 para cambiar nombre
+//       setPaso(1);
+//     }}
+//   />
+// )}
