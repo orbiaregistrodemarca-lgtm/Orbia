@@ -111,11 +111,27 @@ export default function BusquedaIMPI() {
       clearInterval(progresoInterval);
       setProgreso(100);
 
+      console.log('📥 Status:', response.status, response.statusText);
+      
+      const responseText = await response.text();
+      console.log('📥 Respuesta raw:', responseText);
+      
       if (!response.ok) {
-        throw new Error('Error al buscar en IMPI');
+        throw new Error(`Error del servidor: ${response.status} ${response.statusText}`);
       }
 
-      const data = await response.json();
+      if (!responseText || responseText.trim() === '') {
+        throw new Error('El webhook no devolvió datos. Verifica que el workflow en n8n tenga un nodo "Respond to Webhook" configurado.');
+      }
+
+      let data;
+      try {
+        data = JSON.parse(responseText);
+      } catch (parseError) {
+        console.error('Error parseando JSON:', parseError);
+        throw new Error('El webhook devolvió una respuesta inválida. Respuesta: ' + responseText.substring(0, 100));
+      }
+      
       console.log('📥 Respuesta IMPI:', data);
       
       setResultado(data);
