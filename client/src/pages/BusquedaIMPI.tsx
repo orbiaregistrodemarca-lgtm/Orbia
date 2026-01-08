@@ -132,12 +132,17 @@ export default function BusquedaIMPI() {
         throw new Error('El webhook devolvió una respuesta inválida. Respuesta: ' + responseText.substring(0, 100));
       }
       
-      console.log('📥 Respuesta IMPI:', data);
+      const parsedData = Array.isArray(data) ? data[0] : data;
+      console.log('📥 Respuesta IMPI:', parsedData);
       
-      setResultado(data);
+      if (!parsedData || !parsedData.analisis) {
+        throw new Error('El webhook no devolvió el formato esperado. Falta el campo "analisis".');
+      }
+      
+      setResultado(parsedData);
       setPageState('success');
       
-      localStorage.setItem('orbia_busqueda_impi', JSON.stringify(data));
+      localStorage.setItem('orbia_busqueda_impi', JSON.stringify(parsedData));
       
     } catch (err) {
       clearInterval(progresoInterval);
@@ -182,6 +187,7 @@ export default function BusquedaIMPI() {
   const getMascotState = () => {
     if (pageState === 'loading') return 'thinking';
     if (pageState === 'error') return 'worried';
+    if (!resultado?.analisis) return 'idle';
     if (resultado?.analisis.nivel_riesgo === 'ALTO') return 'worried';
     if (resultado?.analisis.nivel_riesgo === 'NINGUNO') return 'happy';
     return 'idle';
