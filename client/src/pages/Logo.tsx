@@ -241,11 +241,11 @@ export default function Logo() {
       const logoData: any = { ...result };
       
       if (uploadedLogoDataUrl && result.logo_origen === 'subido') {
-        logoData.logo_seleccionado = uploadedLogoDataUrl;
         logoData.logo_origen = 'usuario_subido';
+        logoData.logo_seleccionado = 'usuario_subido';
         logoData.logo_alternativa_1_url = null;
         logoData.logo_alternativa_2_url = null;
-        localStorage.setItem('orbia_selected_logo', uploadedLogoDataUrl);
+        localStorage.setItem('orbia_selected_logo', 'usuario_subido');
       } else if (selectedLogo) {
         logoData.logo_seleccionado = selectedLogo;
         localStorage.setItem('orbia_selected_logo', selectedLogo);
