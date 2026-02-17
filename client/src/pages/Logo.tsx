@@ -31,6 +31,7 @@ export default function Logo() {
   
   const [result, setResult] = useState<LogoAnalysisResult | null>(null);
   const [selectedLogo, setSelectedLogo] = useState<string | null>(null);
+  const [uploadedLogoDataUrl, setUploadedLogoDataUrl] = useState<string | null>(null);
   
   const [loadingTip, setLoadingTip] = useState(0);
   const tips = [
@@ -133,6 +134,7 @@ export default function Logo() {
     setResult(null);
     setSelectedLogo(null);
     clearUpload();
+    setUploadedLogoDataUrl(null);
     setPageState('choice');
   };
 
@@ -143,6 +145,7 @@ export default function Logo() {
     
     try {
       const base64 = await imageToBase64(uploadedFile);
+      setUploadedLogoDataUrl(base64);
       
       const analysisResult = await analyzeLogo({
         estudio_id: estudioId,
@@ -152,7 +155,12 @@ export default function Logo() {
         logo_base64: base64,
       });
       
+      analysisResult.logo_alternativa_1_url = null;
+      analysisResult.logo_alternativa_2_url = null;
+      analysisResult.logo_origen = 'subido';
+      
       setResult(analysisResult);
+      setSelectedLogo(base64);
       setPageState('results');
     } catch (error) {
       console.error('Error analyzing logo:', error);
@@ -167,6 +175,7 @@ export default function Logo() {
 
   const generateLogos = async () => {
     setPageState('generating');
+    setUploadedLogoDataUrl(null);
     
     try {
       const analysisResult = await analyzeLogo({
@@ -229,10 +238,20 @@ export default function Logo() {
     }
     
     if (result) {
-      localStorage.setItem('orbia_logo_result', JSON.stringify(result));
-      if (selectedLogo) {
+      const logoData: any = { ...result };
+      
+      if (uploadedLogoDataUrl && result.logo_origen === 'subido') {
+        logoData.logo_seleccionado = uploadedLogoDataUrl;
+        logoData.logo_origen = 'usuario_subido';
+        logoData.logo_alternativa_1_url = null;
+        logoData.logo_alternativa_2_url = null;
+        localStorage.setItem('orbia_selected_logo', uploadedLogoDataUrl);
+      } else if (selectedLogo) {
+        logoData.logo_seleccionado = selectedLogo;
         localStorage.setItem('orbia_selected_logo', selectedLogo);
       }
+      
+      localStorage.setItem('orbia_logo_result', JSON.stringify(logoData));
     }
     
     setLocation('/titular');
