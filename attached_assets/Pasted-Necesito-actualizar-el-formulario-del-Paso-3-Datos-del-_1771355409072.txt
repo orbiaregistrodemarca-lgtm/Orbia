@@ -1,0 +1,75 @@
+Necesito actualizar el formulario del **Paso 3 — Datos del Titular** en la aplicación ORBIA. El formulario debe recolectar los datos del usuario y enviarlos al webhook de n8n.
+>
+> **CAMPOS QUE DEBE TENER EL FORMULARIO:**
+>
+> *Sección: Tipo de persona*
+> - Radio button: `tipo` → opciones: `persona_fisica` | `persona_moral`
+>
+> *Sección: Persona Física (mostrar si tipo = persona_fisica)*
+> - Nombre(s): `nombre`
+> - Primer apellido: `apellido_paterno`
+> - Segundo apellido: `apellido_materno`
+> - CURP: `curp`
+>
+> *Sección: Persona Moral (mostrar si tipo = persona_moral)*
+> - Razón Social: `razon_social`
+> - RFC: `rfc`
+>
+> *Sección: Datos de Contacto*
+> - Email: `email`
+> - Teléfono: `telefono`
+> - Nacionalidad: `nacionalidad` (default: "Mexicana")
+>
+> *Sección: Domicilio (campos SEPARADOS, NO un solo campo)*
+> - Calle: `calle`
+> - Número exterior: `num_exterior`
+> - Número interior: `num_interior` (opcional)
+> - Colonia: `colonia`
+> - Municipio/Alcaldía: `municipio`
+> - Estado: `estado`
+> - Código postal: `codigo_postal`
+> - País: `pais` (default: "México")
+>
+> *Sección: Datos del Signo*
+> - Tipo de signo: `tipo_signo` → opciones: `marca` | `nombre_comercial` | `aviso_comercial` | `marca_colectiva` (default: `marca`)
+> - ¿Ya usaste la marca en México? → checkbox: `no_se_ha_usado` (default: true)
+> - Si no está marcado el checkbox, mostrar: Fecha de primer uso: `fecha_primer_uso` (date picker)
+> - Nombre para firma: `nombre_firmante` (default: igual que nombre completo)
+>
+> **CÓMO ENVIAR LOS DATOS AL WEBHOOK:**
+>
+> Al hacer submit, hacer POST a: `[URL_WEBHOOK]/webhook/datos-titular`
+>
+> Con este JSON exacto:
+> ```json
+> {
+>   "estudio_id": "el id del estudio guardado en localStorage",
+>   "titular": {
+>     "tipo": "persona_fisica",
+>     "nombre": "Juan",
+>     "apellido_paterno": "Pérez",
+>     "apellido_materno": "López",
+>     "curp": "PELJ800101HDFRZN09",
+>     "razon_social": null,
+>     "rfc": null,
+>     "email": "juan@mail.com",
+>     "telefono": "5512345678",
+>     "nacionalidad": "Mexicana",
+>     "calle": "Av. Insurgentes Sur",
+>     "num_exterior": "350",
+>     "num_interior": "",
+>     "colonia": "Hipódromo",
+>     "municipio": "Cuauhtémoc",
+>     "estado": "Ciudad de México",
+>     "codigo_postal": "06100",
+>     "pais": "México",
+>     "tipo_signo": "marca",
+>     "no_se_ha_usado": true,
+>     "fecha_primer_uso": null,
+>     "nombre_firmante": "Juan Pérez López"
+>   }
+> }
+> ```
+>
+> Si la respuesta trae `success: true`, guardar en localStorage el estado `datos_completados = true` y avanzar al siguiente paso.
+> Si trae `success: false`, mostrar los errores al usuario.
