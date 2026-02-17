@@ -11,8 +11,10 @@ import { useToast } from '@/hooks/use-toast';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   User, Building2, ArrowRight, ArrowLeft, Loader2, 
-  CheckCircle, AlertCircle, FileText, UserCheck, Scale
+  CheckCircle, AlertCircle, FileText, UserCheck, Scale,
+  MapPin, Mail, Phone, Stamp, CalendarDays
 } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 
 const ESTADOS_MEXICO = [
   "Aguascalientes", "Baja California", "Baja California Sur", "Campeche", "Chiapas",
@@ -25,6 +27,7 @@ const ESTADOS_MEXICO = [
 const WEBHOOK_TITULAR = 'https://n8n.srv1175451.hstgr.cloud/webhook/datos-titular';
 
 type TipoPersona = 'persona_fisica' | 'persona_moral';
+type TipoSigno = 'marca' | 'nombre_comercial' | 'aviso_comercial' | 'marca_colectiva';
 
 interface FormErrors {
   [key: string]: string;
@@ -43,28 +46,35 @@ export default function Titular() {
   const [tipoPersona, setTipoPersona] = useState<TipoPersona>('persona_fisica');
   
   const [nombre, setNombre] = useState('');
+  const [apellidoPaterno, setApellidoPaterno] = useState('');
+  const [apellidoMaterno, setApellidoMaterno] = useState('');
+  const [curp, setCurp] = useState('');
+  
   const [razonSocial, setRazonSocial] = useState('');
-  const [nacionalidad, setNacionalidad] = useState('Mexicana');
-  const [domicilio, setDomicilio] = useState('');
-  const [codigoPostal, setCodigoPostal] = useState('');
-  const [ciudad, setCiudad] = useState('');
-  const [estado, setEstado] = useState('');
-  const [pais, setPais] = useState('México');
+  const [rfc, setRfc] = useState('');
+  
   const [email, setEmail] = useState('');
   const [telefono, setTelefono] = useState('');
-  const [rfc, setRfc] = useState('');
-  const [curp, setCurp] = useState('');
-  const [representanteLegal, setRepresentanteLegal] = useState('');
+  const [nacionalidad, setNacionalidad] = useState('Mexicana');
   
-  const [tieneApoderado, setTieneApoderado] = useState(false);
-  const [apoderadoNombre, setApoderadoNombre] = useState('');
-  const [apoderadoDomicilio, setApoderadoDomicilio] = useState('');
+  const [calle, setCalle] = useState('');
+  const [numExterior, setNumExterior] = useState('');
+  const [numInterior, setNumInterior] = useState('');
+  const [colonia, setColonia] = useState('');
+  const [municipio, setMunicipio] = useState('');
+  const [estado, setEstado] = useState('');
+  const [codigoPostal, setCodigoPostal] = useState('');
+  const [pais, setPais] = useState('México');
+  
+  const [tipoSigno, setTipoSigno] = useState<TipoSigno>('marca');
+  const [noSeHaUsado, setNoSeHaUsado] = useState(true);
+  const [fechaPrimerUso, setFechaPrimerUso] = useState('');
+  const [nombreFirmante, setNombreFirmante] = useState('');
 
   useEffect(() => {
     const storedResult = localStorage.getItem('orbia_last_result');
-    const storedInput = localStorage.getItem('orbia_last_input');
     
-    if (!storedResult || !storedInput) {
+    if (!storedResult) {
       toast({
         variant: "destructive",
         title: "Error",
@@ -76,45 +86,56 @@ export default function Titular() {
 
     try {
       const parsedResult = JSON.parse(storedResult);
-      const parsedInput = JSON.parse(storedInput);
-      
       setEstudioId(parsedResult.id || '');
-      setNombreMarca(parsedInput.nombre_marca || '');
+      setNombreMarca(parsedResult.nombre_marca || '');
     } catch (e) {
       console.error('Error loading data:', e);
       setLocation('/clasificar');
     }
   }, [setLocation, toast]);
 
+  const getNombreCompleto = () => {
+    if (tipoPersona === 'persona_fisica') {
+      return [nombre, apellidoPaterno, apellidoMaterno].filter(Boolean).join(' ');
+    }
+    return razonSocial;
+  };
+
   const validateForm = (): boolean => {
     const newErrors: FormErrors = {};
     
     if (tipoPersona === 'persona_fisica') {
       if (!nombre.trim()) newErrors.nombre = 'El nombre es obligatorio';
+      if (!apellidoPaterno.trim()) newErrors.apellidoPaterno = 'El primer apellido es obligatorio';
       if (!curp.trim()) {
         newErrors.curp = 'El CURP es obligatorio';
       } else if (curp.length !== 18) {
         newErrors.curp = 'El CURP debe tener 18 caracteres';
       }
-      if (rfc && rfc.length !== 13) {
-        newErrors.rfc = 'El RFC de persona física debe tener 13 caracteres';
-      }
     } else {
       if (!razonSocial.trim()) newErrors.razonSocial = 'La razón social es obligatoria';
-      if (rfc && rfc.length !== 12) {
+      if (!rfc.trim()) {
+        newErrors.rfc = 'El RFC es obligatorio';
+      } else if (rfc.length !== 12) {
         newErrors.rfc = 'El RFC de persona moral debe tener 12 caracteres';
       }
     }
     
-    if (!domicilio.trim()) newErrors.domicilio = 'El domicilio es obligatorio';
     if (!email.trim()) {
       newErrors.email = 'El email es obligatorio';
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       newErrors.email = 'El formato del email no es válido';
     }
     
-    if (tieneApoderado && !apoderadoNombre.trim()) {
-      newErrors.apoderadoNombre = 'El nombre del apoderado es obligatorio';
+    if (!calle.trim()) newErrors.calle = 'La calle es obligatoria';
+    if (!numExterior.trim()) newErrors.numExterior = 'El número exterior es obligatorio';
+    if (!colonia.trim()) newErrors.colonia = 'La colonia es obligatoria';
+    if (!municipio.trim()) newErrors.municipio = 'El municipio es obligatorio';
+    if (!estado.trim()) newErrors.estado = 'El estado es obligatorio';
+    if (!codigoPostal.trim()) newErrors.codigoPostal = 'El código postal es obligatorio';
+
+    if (!noSeHaUsado && !fechaPrimerUso) {
+      newErrors.fechaPrimerUso = 'La fecha de primer uso es obligatoria';
     }
     
     setErrors(newErrors);
@@ -134,47 +155,35 @@ export default function Titular() {
     setIsSubmitting(true);
     
     try {
-      const titularData = tipoPersona === 'persona_fisica' 
-        ? {
-            tipo: 'persona_fisica',
-            nombre,
-            nacionalidad,
-            domicilio,
-            codigo_postal: codigoPostal,
-            ciudad,
-            estado,
-            pais,
-            email,
-            telefono,
-            rfc: rfc || undefined,
-            curp,
-          }
-        : {
-            tipo: 'persona_moral',
-            razon_social: razonSocial,
-            nacionalidad,
-            domicilio,
-            codigo_postal: codigoPostal,
-            ciudad,
-            estado,
-            pais,
-            email,
-            telefono,
-            rfc: rfc || undefined,
-            representante_legal: representanteLegal || undefined,
-          };
-
-      const payload: any = {
+      const firmante = nombreFirmante.trim() || getNombreCompleto();
+      
+      const payload = {
         estudio_id: estudioId,
-        titular: titularData,
+        titular: {
+          tipo: tipoPersona,
+          nombre: tipoPersona === 'persona_fisica' ? nombre : null,
+          apellido_paterno: tipoPersona === 'persona_fisica' ? apellidoPaterno : null,
+          apellido_materno: tipoPersona === 'persona_fisica' ? apellidoMaterno || null : null,
+          curp: tipoPersona === 'persona_fisica' ? curp : null,
+          razon_social: tipoPersona === 'persona_moral' ? razonSocial : null,
+          rfc: tipoPersona === 'persona_moral' ? rfc : null,
+          email,
+          telefono: telefono || null,
+          nacionalidad,
+          calle,
+          num_exterior: numExterior,
+          num_interior: numInterior || "",
+          colonia,
+          municipio,
+          estado,
+          codigo_postal: codigoPostal,
+          pais,
+          tipo_signo: tipoSigno,
+          no_se_ha_usado: noSeHaUsado,
+          fecha_primer_uso: noSeHaUsado ? null : fechaPrimerUso,
+          nombre_firmante: firmante,
+        }
       };
-
-      if (tieneApoderado && apoderadoNombre) {
-        payload.apoderado = {
-          nombre: apoderadoNombre,
-          domicilio: apoderadoDomicilio || undefined,
-        };
-      }
 
       console.log('📤 Enviando datos del titular:', payload);
 
@@ -184,12 +193,23 @@ export default function Titular() {
         body: JSON.stringify(payload),
       });
 
-      const result = await response.json();
+      const responseText = await response.text();
+      console.log('📥 Respuesta raw:', responseText);
+      
+      let result;
+      try {
+        const parsed = JSON.parse(responseText);
+        result = Array.isArray(parsed) ? parsed[0] : parsed;
+      } catch {
+        throw new Error('Respuesta inválida del servidor');
+      }
+      
       console.log('📥 Respuesta del webhook:', result);
 
       if (result.success) {
         setIsSuccess(true);
         localStorage.setItem('orbia_titular_data', JSON.stringify(payload));
+        localStorage.setItem('datos_completados', 'true');
         toast({
           title: "Datos guardados",
           description: result.mensaje || "Los datos del titular se guardaron correctamente",
@@ -221,7 +241,8 @@ export default function Titular() {
     onChange: (v: string) => void,
     required: boolean = false,
     placeholder?: string,
-    maxLength?: number
+    maxLength?: number,
+    type: string = 'text'
   ) => (
     <div className="space-y-2">
       <Label htmlFor={id} className="text-sm font-medium">
@@ -229,6 +250,7 @@ export default function Titular() {
       </Label>
       <Input
         id={id}
+        type={type}
         data-testid={`input-${id}`}
         value={value}
         onChange={(e) => onChange(e.target.value)}
@@ -247,266 +269,314 @@ export default function Titular() {
 
   if (isSuccess) {
     return (
-      <div className="container max-w-2xl mx-auto px-4 py-8">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="text-center"
-        >
-          <div className="flex justify-center mb-6">
-            <OrbiaMascot state="happy" size="lg" />
-          </div>
-          
-          <Card className="border-emerald-200 bg-emerald-50">
-            <CardContent className="pt-8 pb-8">
-              <CheckCircle className="w-16 h-16 text-emerald-600 mx-auto mb-4" />
-              <h2 className="text-2xl font-bold text-emerald-800 mb-2">
-                Datos guardados exitosamente
-              </h2>
-              <p className="text-emerald-700 mb-6">
-                Los datos del titular han sido registrados correctamente.
-              </p>
-              
-              <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Button 
-                  onClick={() => setLocation('/solicitud')}
-                  className="bg-primary"
-                  data-testid="button-continue"
-                >
-                  Continuar a Generar Solicitud
-                  <ArrowRight className="w-4 h-4 ml-2" />
-                </Button>
-                <Button 
-                  variant="outline"
-                  onClick={() => setIsSuccess(false)}
-                  data-testid="button-edit"
-                >
-                  Editar datos
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 py-8 px-4">
+        <div className="max-w-2xl mx-auto">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="text-center"
+          >
+            <div className="flex justify-center mb-6">
+              <OrbiaMascot state="happy" size="lg" />
+            </div>
+            
+            <Card className="border-emerald-200 bg-emerald-50">
+              <CardContent className="pt-8 pb-8">
+                <CheckCircle className="w-16 h-16 text-emerald-600 mx-auto mb-4" />
+                <h2 className="text-2xl font-bold text-emerald-800 mb-2">
+                  Datos guardados exitosamente
+                </h2>
+                <p className="text-emerald-700 mb-6">
+                  Los datos del titular han sido registrados correctamente.
+                </p>
+                
+                <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                  <Button 
+                    onClick={() => setLocation('/solicitud')}
+                    className="bg-primary"
+                    data-testid="button-continue"
+                  >
+                    Continuar a Generar Solicitud
+                    <ArrowRight className="w-4 h-4 ml-2" />
+                  </Button>
+                  <Button 
+                    variant="outline"
+                    onClick={() => setIsSuccess(false)}
+                    data-testid="button-edit"
+                  >
+                    Editar datos
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="container max-w-3xl mx-auto px-4 py-8">
-      <div className="flex items-start justify-between mb-6">
-        <div>
-          <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
-            <FileText className="w-4 h-4" />
-            <span>MÓDULO 3</span>
-            <span className="text-primary font-medium">• Paso 3 de 4</span>
-          </div>
-          <h1 className="text-3xl font-bold text-primary">Datos del Titular</h1>
-          <p className="text-muted-foreground mt-1">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 py-8 px-4">
+      <div className="max-w-3xl mx-auto">
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-center mb-8"
+        >
+          <Badge variant="outline" className="mb-4 px-4 py-1.5 text-sm font-medium border-primary/30 bg-primary/5">
+            Paso 3 de 4
+          </Badge>
+          <h1 className="text-3xl font-bold text-slate-900 mb-2">
+            Datos del Titular
+          </h1>
+          <p className="text-muted-foreground">
             Ingresa los datos de quien será el titular de la marca "{nombreMarca}"
           </p>
+        </motion.div>
+
+        <div className="flex justify-center mb-6">
+          <OrbiaMascot state="idle" size="md" />
         </div>
-        <OrbiaMascot state="idle" size="md" className="hidden sm:block" />
-      </div>
 
-      <div className="flex gap-2 mb-8">
-        {[1, 2, 3, 4].map((step) => (
-          <div 
-            key={step}
-            className={`h-2 flex-1 rounded-full ${
-              step <= 3 ? 'bg-primary' : 'bg-slate-200'
-            }`}
-          />
-        ))}
-      </div>
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Scale className="w-5 h-5 text-primary" />
+              Tipo de Persona
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 gap-4">
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={() => setTipoPersona('persona_fisica')}
+                data-testid="button-persona-fisica"
+                className={`p-6 rounded-xl border-2 text-left transition-all ${
+                  tipoPersona === 'persona_fisica'
+                    ? 'border-primary bg-primary/5'
+                    : 'border-slate-200 hover:border-slate-300'
+                }`}
+              >
+                <User className={`w-8 h-8 mb-3 ${
+                  tipoPersona === 'persona_fisica' ? 'text-primary' : 'text-slate-400'
+                }`} />
+                <h3 className="font-semibold mb-1">Persona Física</h3>
+                <p className="text-sm text-muted-foreground">
+                  Individuo o profesionista independiente
+                </p>
+              </motion.button>
 
-      <Card className="mb-6">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Scale className="w-5 h-5 text-primary" />
-            Tipo de Titular
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-2 gap-4">
-            <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              onClick={() => setTipoPersona('persona_fisica')}
-              data-testid="button-persona-fisica"
-              className={`p-6 rounded-xl border-2 text-left transition-all ${
-                tipoPersona === 'persona_fisica'
-                  ? 'border-primary bg-primary/5'
-                  : 'border-slate-200 hover:border-slate-300'
-              }`}
-            >
-              <User className={`w-8 h-8 mb-3 ${
-                tipoPersona === 'persona_fisica' ? 'text-primary' : 'text-slate-400'
-              }`} />
-              <h3 className="font-semibold mb-1">Persona Física</h3>
-              <p className="text-sm text-muted-foreground">
-                Individuo o profesionista independiente
-              </p>
-            </motion.button>
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={() => setTipoPersona('persona_moral')}
+                data-testid="button-persona-moral"
+                className={`p-6 rounded-xl border-2 text-left transition-all ${
+                  tipoPersona === 'persona_moral'
+                    ? 'border-primary bg-primary/5'
+                    : 'border-slate-200 hover:border-slate-300'
+                }`}
+              >
+                <Building2 className={`w-8 h-8 mb-3 ${
+                  tipoPersona === 'persona_moral' ? 'text-primary' : 'text-slate-400'
+                }`} />
+                <h3 className="font-semibold mb-1">Persona Moral</h3>
+                <p className="text-sm text-muted-foreground">
+                  Empresa o sociedad constituida
+                </p>
+              </motion.button>
+            </div>
+          </CardContent>
+        </Card>
 
-            <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              onClick={() => setTipoPersona('persona_moral')}
-              data-testid="button-persona-moral"
-              className={`p-6 rounded-xl border-2 text-left transition-all ${
-                tipoPersona === 'persona_moral'
-                  ? 'border-primary bg-primary/5'
-                  : 'border-slate-200 hover:border-slate-300'
-              }`}
-            >
-              <Building2 className={`w-8 h-8 mb-3 ${
-                tipoPersona === 'persona_moral' ? 'text-primary' : 'text-slate-400'
-              }`} />
-              <h3 className="font-semibold mb-1">Persona Moral</h3>
-              <p className="text-sm text-muted-foreground">
-                Empresa o sociedad constituida
-              </p>
-            </motion.button>
-          </div>
-        </CardContent>
-      </Card>
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={tipoPersona}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.3 }}
+          >
+            <Card className="mb-6">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <UserCheck className="w-5 h-5 text-primary" />
+                  {tipoPersona === 'persona_fisica' ? 'Datos Personales' : 'Datos de la Empresa'}
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {tipoPersona === 'persona_fisica' ? (
+                  <>
+                    {renderInput('nombre', 'Nombre(s)', nombre, setNombre, true, 'Ej: Juan')}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {renderInput('apellidoPaterno', 'Primer apellido', apellidoPaterno, setApellidoPaterno, true, 'Ej: Pérez')}
+                      {renderInput('apellidoMaterno', 'Segundo apellido', apellidoMaterno, setApellidoMaterno, false, 'Ej: López')}
+                    </div>
+                    {renderInput('curp', 'CURP', curp, (v) => setCurp(v.toUpperCase()), true, 'PELJ800101HDFRZN09', 18)}
+                  </>
+                ) : (
+                  <>
+                    {renderInput('razonSocial', 'Razón Social', razonSocial, setRazonSocial, true, 'Ej: Empresa XYZ S.A. de C.V.')}
+                    {renderInput('rfc', 'RFC', rfc, (v) => setRfc(v.toUpperCase()), true, 'EXY800101XYZ', 12)}
+                  </>
+                )}
+              </CardContent>
+            </Card>
 
-      <AnimatePresence mode="wait">
-        <motion.div
-          key={tipoPersona}
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -20 }}
-          transition={{ duration: 0.3 }}
-        >
-          <Card className="mb-6">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <UserCheck className="w-5 h-5 text-primary" />
-                Datos del Titular
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              {tipoPersona === 'persona_fisica' ? (
-                <>
-                  {renderInput('nombre', 'Nombre completo', nombre, setNombre, true, 'Ej: Juan Pérez López')}
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {renderInput('curp', 'CURP', curp, (v) => setCurp(v.toUpperCase()), true, 'PELJ800101HYNRPN09', 18)}
-                    {renderInput('rfc', 'RFC', rfc, (v) => setRfc(v.toUpperCase()), false, 'PELJ800101ABC', 13)}
-                  </div>
-                </>
-              ) : (
-                <>
-                  {renderInput('razonSocial', 'Razón Social', razonSocial, setRazonSocial, true, 'Ej: Empresa XYZ S.A. de C.V.')}
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {renderInput('rfc', 'RFC', rfc, (v) => setRfc(v.toUpperCase()), false, 'EXY800101XYZ', 12)}
-                    {renderInput('representanteLegal', 'Representante Legal', representanteLegal, setRepresentanteLegal, false, 'Nombre del representante')}
-                  </div>
-                </>
-              )}
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Card className="mb-6">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Mail className="w-5 h-5 text-primary" />
+                  Datos de Contacto
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {renderInput('email', 'Email', email, setEmail, true, 'correo@ejemplo.com')}
+                  {renderInput('telefono', 'Teléfono', telefono, setTelefono, false, '5512345678', 10)}
+                </div>
                 {renderInput('nacionalidad', 'Nacionalidad', nacionalidad, setNacionalidad, false)}
-                {renderInput('pais', 'País', pais, setPais, false)}
-              </div>
+              </CardContent>
+            </Card>
 
-              {renderInput('domicilio', 'Domicilio completo', domicilio, setDomicilio, true, 'Calle, número, colonia')}
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {renderInput('codigoPostal', 'Código Postal', codigoPostal, setCodigoPostal, false, '97000', 5)}
-                {renderInput('ciudad', 'Ciudad', ciudad, setCiudad, false, 'Ej: Mérida')}
+            <Card className="mb-6">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <MapPin className="w-5 h-5 text-primary" />
+                  Domicilio
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {renderInput('calle', 'Calle', calle, setCalle, true, 'Ej: Av. Insurgentes Sur')}
                 
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {renderInput('numExterior', 'Número exterior', numExterior, setNumExterior, true, 'Ej: 350')}
+                  {renderInput('numInterior', 'Número interior', numInterior, setNumInterior, false, 'Ej: Depto 4A')}
+                </div>
+
+                {renderInput('colonia', 'Colonia', colonia, setColonia, true, 'Ej: Hipódromo')}
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {renderInput('municipio', 'Municipio / Alcaldía', municipio, setMunicipio, true, 'Ej: Cuauhtémoc')}
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="estado" className="text-sm font-medium">
+                      Estado <span className="text-red-500">*</span>
+                    </Label>
+                    <Select value={estado} onValueChange={setEstado}>
+                      <SelectTrigger id="estado" data-testid="select-estado" className={errors.estado ? 'border-red-500' : ''}>
+                        <SelectValue placeholder="Selecciona un estado" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {ESTADOS_MEXICO.map((est) => (
+                          <SelectItem key={est} value={est}>{est}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {errors.estado && (
+                      <p className="text-xs text-red-500 flex items-center gap-1">
+                        <AlertCircle className="w-3 h-3" />
+                        {errors.estado}
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {renderInput('codigoPostal', 'Código Postal', codigoPostal, setCodigoPostal, true, 'Ej: 06100', 5)}
+                  {renderInput('pais', 'País', pais, setPais, false)}
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="mb-6">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Stamp className="w-5 h-5 text-primary" />
+                  Datos del Signo
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="estado" className="text-sm font-medium">Estado</Label>
-                  <Select value={estado} onValueChange={setEstado}>
-                    <SelectTrigger id="estado" data-testid="select-estado">
-                      <SelectValue placeholder="Selecciona un estado" />
+                  <Label className="text-sm font-medium">Tipo de signo</Label>
+                  <Select value={tipoSigno} onValueChange={(v) => setTipoSigno(v as TipoSigno)}>
+                    <SelectTrigger data-testid="select-tipo-signo">
+                      <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      {ESTADOS_MEXICO.map((est) => (
-                        <SelectItem key={est} value={est}>{est}</SelectItem>
-                      ))}
+                      <SelectItem value="marca">Marca</SelectItem>
+                      <SelectItem value="nombre_comercial">Nombre Comercial</SelectItem>
+                      <SelectItem value="aviso_comercial">Aviso Comercial</SelectItem>
+                      <SelectItem value="marca_colectiva">Marca Colectiva</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
-              </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {renderInput('email', 'Email', email, setEmail, true, 'correo@ejemplo.com')}
-                {renderInput('telefono', 'Teléfono', telefono, setTelefono, false, '9991234567', 10)}
-              </div>
-            </CardContent>
-          </Card>
+                <div className="flex items-center space-x-3 p-4 bg-slate-50 rounded-lg border">
+                  <Checkbox
+                    id="noSeHaUsado"
+                    checked={noSeHaUsado}
+                    onCheckedChange={(checked) => setNoSeHaUsado(checked === true)}
+                    data-testid="checkbox-no-se-ha-usado"
+                  />
+                  <Label htmlFor="noSeHaUsado" className="cursor-pointer text-sm">
+                    Aún no he usado esta marca en México
+                  </Label>
+                </div>
 
-          <Card className="mb-6">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-lg">
-                <Scale className="w-5 h-5 text-primary" />
-                Apoderado Legal (Opcional)
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center space-x-3 mb-4">
-                <Checkbox
-                  id="tieneApoderado"
-                  checked={tieneApoderado}
-                  onCheckedChange={(checked) => setTieneApoderado(checked === true)}
-                  data-testid="checkbox-apoderado"
-                />
-                <Label htmlFor="tieneApoderado" className="cursor-pointer">
-                  ¿Tienes un apoderado legal para este trámite?
-                </Label>
-              </div>
+                <AnimatePresence>
+                  {!noSeHaUsado && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      exit={{ opacity: 0, height: 0 }}
+                      className="overflow-hidden"
+                    >
+                      {renderInput('fechaPrimerUso', 'Fecha de primer uso', fechaPrimerUso, setFechaPrimerUso, true, '', undefined, 'date')}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
 
-              <AnimatePresence>
-                {tieneApoderado && (
-                  <motion.div
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: 'auto' }}
-                    exit={{ opacity: 0, height: 0 }}
-                    className="space-y-4 overflow-hidden"
-                  >
-                    {renderInput('apoderadoNombre', 'Nombre del apoderado', apoderadoNombre, setApoderadoNombre, true, 'Ej: Lic. María García')}
-                    {renderInput('apoderadoDomicilio', 'Domicilio del apoderado', apoderadoDomicilio, setApoderadoDomicilio, false, 'Dirección completa')}
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </CardContent>
-          </Card>
-        </motion.div>
-      </AnimatePresence>
+                {renderInput('nombreFirmante', 'Nombre para firma', nombreFirmante, setNombreFirmante, false, getNombreCompleto() || 'Nombre completo del firmante')}
+                <p className="text-xs text-muted-foreground -mt-2">
+                  Si lo dejas vacío, se usará el nombre del titular
+                </p>
+              </CardContent>
+            </Card>
+          </motion.div>
+        </AnimatePresence>
 
-      <div className="flex flex-col sm:flex-row gap-4">
-        <Button
-          onClick={handleSubmit}
-          disabled={isSubmitting}
-          className="flex-1 py-6 text-lg bg-primary"
-          data-testid="button-submit"
-        >
-          {isSubmitting ? (
-            <>
-              <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-              Guardando...
-            </>
-          ) : (
-            <>
-              Guardar y Continuar
-              <ArrowRight className="w-5 h-5 ml-2" />
-            </>
-          )}
-        </Button>
-        
-        <Button
-          variant="outline"
-          onClick={() => setLocation('/logo')}
-          className="py-6"
-          data-testid="button-back"
-        >
-          <ArrowLeft className="w-4 h-4 mr-2" />
-          Volver
-        </Button>
+        <div className="flex flex-col sm:flex-row gap-4">
+          <Button
+            onClick={handleSubmit}
+            disabled={isSubmitting}
+            className="flex-1 py-6 text-lg bg-primary"
+            data-testid="button-submit"
+          >
+            {isSubmitting ? (
+              <>
+                <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                Guardando...
+              </>
+            ) : (
+              <>
+                Guardar y Continuar
+                <ArrowRight className="w-5 h-5 ml-2" />
+              </>
+            )}
+          </Button>
+          
+          <Button
+            variant="outline"
+            onClick={() => setLocation('/logo')}
+            className="py-6"
+            data-testid="button-back"
+          >
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Volver
+          </Button>
+        </div>
       </div>
     </div>
   );
