@@ -20,8 +20,15 @@ interface MarcaEncontrada {
   registro: string;
   titular: string;
   clase: string;
+  clases?: number[];
+  clases_en_conflicto?: number[];
   estado: string;
   tipo: string;
+  vigente?: boolean;
+  similitud?: number;
+  fecha_vencimiento?: string;
+  link_impi?: string;
+  imagen_url?: string;
 }
 
 interface AnalisisConflictos {
@@ -35,8 +42,12 @@ interface AnalisisConflictos {
 
 interface ResultadoBusqueda {
   total_marcas_encontradas: number;
+  marcas_vigentes?: number;
   marca_exacta_existe: boolean;
   marcas_similares: MarcaEncontrada[];
+  marcas_en_conflicto?: MarcaEncontrada[];
+  otras_marcas?: MarcaEncontrada[];
+  conflictos_en_tus_clases?: number;
 }
 
 interface BusquedaResponse {
@@ -56,6 +67,7 @@ export default function BusquedaIMPI() {
   const [error, setError] = useState<string | null>(null);
   
   const [estudioId, setEstudioId] = useState('');
+  const [showOtrasMarcas, setShowOtrasMarcas] = useState(false);
   const [nombreMarca, setNombreMarca] = useState('');
   const [claseNiza, setClaseNiza] = useState<number>(0);
 
@@ -96,7 +108,18 @@ export default function BusquedaIMPI() {
     }, 1000);
 
     try {
-      console.log('📤 Buscando en IMPI:', { estudio_id: id, nombre_marca: nombre, clase_niza: clase });
+      const storedResult = localStorage.getItem('orbia_last_result');
+      let todasLasClases: number[] = [clase];
+      if (storedResult) {
+        try {
+          const estudio = JSON.parse(storedResult);
+          if (estudio.clase_secundaria_1_numero) todasLasClases.push(estudio.clase_secundaria_1_numero);
+          if (estudio.clase_secundaria_2_numero) todasLasClases.push(estudio.clase_secundaria_2_numero);
+          if (estudio.clase_secundaria_3_numero) todasLasClases.push(estudio.clase_secundaria_3_numero);
+        } catch {}
+      }
+
+      console.log('📤 Buscando en IMPI:', { estudio_id: id, nombre_marca: nombre, clase_niza: clase, todas_las_clases: todasLasClases });
       
       const response = await fetch(WEBHOOK_URL, {
         method: 'POST',
@@ -104,7 +127,8 @@ export default function BusquedaIMPI() {
         body: JSON.stringify({
           estudio_id: id,
           nombre_marca: nombre,
-          clase_niza: clase
+          clase_niza: clase,
+          todas_las_clases: todasLasClases
         })
       });
 
@@ -312,47 +336,121 @@ export default function BusquedaIMPI() {
           </CardContent>
         </Card>
 
-        {resultado_busqueda.marcas_similares && resultado_busqueda.marcas_similares.length > 0 && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-lg">
-                <Search className="w-5 h-5 text-primary" />
-                Marcas encontradas en IMPI
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3 max-h-60 overflow-y-auto">
-                {resultado_busqueda.marcas_similares.map((marca, index) => (
-                  <div 
-                    key={index}
-                    className="border rounded-lg p-3 bg-slate-50"
-                    data-testid={`marca-encontrada-${index}`}
-                  >
-                    <div className="flex justify-between items-start gap-4">
-                      <div>
-                        <p className="font-semibold text-slate-800">{marca.denominacion || 'Sin nombre'}</p>
-                        <p className="text-sm text-muted-foreground">
-                          Expediente: {marca.expediente || 'N/A'}
-                        </p>
-                        <p className="text-sm text-muted-foreground">
-                          Titular: {marca.titular || 'N/A'}
-                        </p>
-                      </div>
-                      <div className="text-right shrink-0">
-                        <Badge variant="secondary">
-                          Clase {marca.clase || 'N/A'}
-                        </Badge>
-                        <p className="text-xs text-muted-foreground mt-1">
-                          {marca.estado || 'Estado desconocido'}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                ))}
+        {(() => {
+          const marcasConflicto = resultado_busqueda.marcas_en_conflicto || [];
+          const marcasOtras = resultado_busqueda.otras_marcas || [];
+          const marcasFallback = (!marcasConflicto.length && !marcasOtras.length) ? (resultado_busqueda.marcas_similares || []) : [];
+
+          const renderMarca = (marca: MarcaEncontrada, index: number, isConflict: boolean = false) => (
+            <div 
+              key={index}
+              className={`border rounded-lg p-3 ${isConflict ? 'bg-red-50 border-red-200' : 'bg-slate-50'}`}
+              data-testid={`marca-encontrada-${index}`}
+            >
+              <div className="flex justify-between items-start gap-4">
+                <div className="flex-1 min-w-0">
+                  <p className="font-semibold text-slate-800">{marca.denominacion || 'Sin nombre'}</p>
+                  <p className="text-sm text-muted-foreground">
+                    Expediente: {marca.expediente || 'N/A'}
+                  </p>
+                  {marca.titular && (
+                    <p className="text-sm text-muted-foreground">
+                      Titular: {marca.titular}
+                    </p>
+                  )}
+                  {marca.clases_en_conflicto && marca.clases_en_conflicto.length > 0 && (
+                    <p className="text-sm font-semibold text-red-600 mt-1">
+                      Clase {marca.clases_en_conflicto.join(', ')} en conflicto
+                    </p>
+                  )}
+                  {marca.similitud != null && (
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Similitud: {marca.similitud}%
+                    </p>
+                  )}
+                  {marca.fecha_vencimiento && (
+                    <p className="text-xs text-muted-foreground">
+                      Vence: {marca.fecha_vencimiento}
+                    </p>
+                  )}
+                </div>
+                <div className="text-right shrink-0">
+                  <Badge variant={marca.vigente === false ? 'outline' : 'secondary'} className={marca.vigente === false ? 'opacity-60' : ''}>
+                    {marca.clases ? `Clases: ${marca.clases.join(', ')}` : `Clase ${marca.clase || 'N/A'}`}
+                  </Badge>
+                  <p className={`text-xs mt-1 ${marca.vigente ? 'text-red-600 font-semibold' : 'text-muted-foreground'}`}>
+                    {marca.estado || 'Estado desconocido'}
+                  </p>
+                  {marca.link_impi && (
+                    <a href={marca.link_impi} target="_blank" rel="noopener noreferrer" className="text-xs text-blue-600 hover:underline mt-1 inline-block">
+                      Ver en IMPI
+                    </a>
+                  )}
+                </div>
               </div>
-            </CardContent>
-          </Card>
-        )}
+              {marca.imagen_url && (
+                <img src={marca.imagen_url} alt={marca.denominacion} className="mt-2 max-h-16 object-contain rounded" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+              )}
+            </div>
+          );
+
+          return (
+            <>
+              {marcasConflicto.length > 0 && (
+                <Card className="border-red-200">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2 text-lg text-red-800">
+                      <AlertTriangle className="w-5 h-5" />
+                      Conflictos en TUS clases ({marcasConflicto.length})
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-3 max-h-80 overflow-y-auto">
+                      {marcasConflicto.map((m, i) => renderMarca(m, i, true))}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              {marcasOtras.length > 0 && (
+                <Card>
+                  <CardHeader className="cursor-pointer" onClick={() => setShowOtrasMarcas(!showOtrasMarcas)}>
+                    <CardTitle className="flex items-center gap-2 text-lg">
+                      <Search className="w-5 h-5 text-primary" />
+                      Otras marcas similares en clases diferentes ({marcasOtras.length})
+                      <span className="text-xs text-muted-foreground ml-auto">
+                        {showOtrasMarcas ? '(clic para colapsar)' : '(clic para expandir)'}
+                      </span>
+                    </CardTitle>
+                  </CardHeader>
+                  {showOtrasMarcas && (
+                    <CardContent>
+                      <div className="space-y-3 max-h-60 overflow-y-auto">
+                        {marcasOtras.map((m, i) => renderMarca(m, i))}
+                      </div>
+                    </CardContent>
+                  )}
+                </Card>
+              )}
+
+              {marcasFallback.length > 0 && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2 text-lg">
+                      <Search className="w-5 h-5 text-primary" />
+                      Marcas encontradas en IMPI
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-3 max-h-60 overflow-y-auto">
+                      {marcasFallback.map((m, i) => renderMarca(m, i))}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+            </>
+          );
+        })()}
 
         {analisis.recomendaciones && analisis.recomendaciones.length > 0 && (
           <Card className="border-blue-200 bg-blue-50">

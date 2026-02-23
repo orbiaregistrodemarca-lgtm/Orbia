@@ -125,5 +125,34 @@ export async function registerRoutes(
     }
   });
 
+  app.patch('/api/estudios/:estudioId/logo', async (req, res) => {
+    try {
+      const { estudioId } = req.params;
+      const { logo_seleccionado, logo_origen } = req.body;
+      
+      if (!estudioId || !logo_seleccionado) {
+        return res.status(400).json({ message: 'Faltan datos requeridos' });
+      }
+
+      const { getSupabase } = await import('./supabase');
+      const supabase = getSupabase();
+      
+      const { error } = await supabase
+        .from('estudios_marca')
+        .update({ logo_seleccionado, logo_origen })
+        .eq('id', estudioId);
+
+      if (error) {
+        console.error('Error guardando logo en Supabase:', error);
+        return res.status(500).json({ message: 'Error guardando logo', error: error.message });
+      }
+
+      res.json({ success: true });
+    } catch (error) {
+      console.error('Error en PATCH /api/estudios/:id/logo:', error);
+      res.status(500).json({ message: error instanceof Error ? error.message : 'Error interno' });
+    }
+  });
+
   return httpServer;
 }

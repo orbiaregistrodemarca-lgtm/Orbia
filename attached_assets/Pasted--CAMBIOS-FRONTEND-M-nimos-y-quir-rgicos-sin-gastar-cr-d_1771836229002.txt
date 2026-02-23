@@ -1,0 +1,149 @@
+# CAMBIOS FRONTEND — Mínimos y quirúrgicos (sin gastar créditos innecesarios)
+
+## CAMBIO 1: Enviar todas las clases al buscar IMPI
+**Archivo: busqueda-impi.js (o donde llames al webhook buscar-impi)**
+
+Busca la llamada al webhook y cambia el body para incluir `todas_las_clases`:
+
+```javascript
+// ANTES
+const body = {
+  estudio_id: estudioId,
+  nombre_marca: nombreMarca,
+  clase_niza: claseNiza
+};
+
+// DESPUÉS
+// Construir array con TODAS las clases del estudio
+const todasLasClases = [estudio.clase_niza];
+if (estudio.clase_secundaria_1_numero) todasLasClases.push(estudio.clase_secundaria_1_numero);
+if (estudio.clase_secundaria_2_numero) todasLasClases.push(estudio.clase_secundaria_2_numero);
+if (estudio.clase_secundaria_3_numero) todasLasClases.push(estudio.clase_secundaria_3_numero);
+
+const body = {
+  estudio_id: estudioId,
+  nombre_marca: nombreMarca,
+  clase_niza: estudio.clase_niza,
+  todas_las_clases: todasLasClases  // ← AGREGAR ESTO
+};
+```
+
+---
+
+## CAMBIO 2: Mostrar resultados IMPI separados por relevancia
+**Archivo: busqueda-impi.js — sección que renderiza las marcas encontradas**
+
+Reemplaza el render de marcas con esta lógica:
+
+```javascript
+// La respuesta ahora incluye:
+// resultado_busqueda.marcas_en_conflicto  ← SOLO las que chocan con TUS clases
+// resultado_busqueda.otras_marcas         ← el resto (informativo)
+// resultado_busqueda.conflictos_en_tus_clases ← número de conflictos reales
+
+const marcasConflicto = resultado.resultado_busqueda.marcas_en_conflicto || [];
+const marcasOtras = resultado.resultado_busqueda.otras_marcas || [];
+
+// Ejemplo de render para marcas en conflicto:
+const renderMarca = (m) => `
+  <div class="marca-item ${m.vigente ? 'vigente' : 'no-vigente'} ${m.clases_en_conflicto?.length ? 'conflicto' : ''}">
+    <div class="marca-nombre">${m.denominacion}</div>
+    <div class="marca-clases">Clases: ${m.clases.join(', ')} ${m.clases_en_conflicto?.length ? '⚠️ Clase ' + m.clases_en_conflicto.join(', ') + ' en conflicto' : ''}</div>
+    <div class="marca-exp">Expediente: ${m.expediente}</div>
+    <div class="marca-estado ${m.vigente ? 'badge-red' : 'badge-gray'}">${m.estado}</div>
+    <div class="marca-similitud">Similitud: ${m.similitud}%</div>
+    ${m.fecha_vencimiento ? `<div class="marca-vencimiento">Vence: ${m.fecha_vencimiento}</div>` : ''}
+    ${m.link_impi ? `<a href="${m.link_impi}" target="_blank" class="link-impi">Ver en IMPI →</a>` : ''}
+    ${m.imagen_url ? `<img src="${m.imagen_url}" class="marca-img" onerror="this.style.display='none'"/>` : ''}
+  </div>
+`;
+
+// Sección de conflictos reales
+if (marcasConflicto.length > 0) {
+  html += `<h3>⚠️ Conflictos en TUS clases (${marcasConflicto.length})</h3>`;
+  html += marcasConflicto.map(renderMarca).join('');
+}
+
+// Sección de otras clases (colapsable)
+if (marcasOtras.length > 0) {
+  html += `<details><summary>Otras marcas similares en clases diferentes (${marcasOtras.length})</summary>`;
+  html += marcasOtras.map(renderMarca).join('');
+  html += `</details>`;
+}
+```
+
+---
+
+## CAMBIO 3: Guardar logo seleccionado en Supabase
+**Archivo: logo.js (o donde el usuario selecciona el logo)**
+
+Agrega esta función y llámala cuando el usuario haga clic en "Seleccionar este logo":
+
+```javascript
+// Constantes de Supabase (ya las debes tener)
+const SUPABASE_URL = 'https://zxlzcbohvjqlwmojejee.supabase.co';
+const SUPABASE_ANON_KEY = 'TU_ANON_KEY'; // la key pública del frontend
+
+async function guardarLogoSeleccionado(estudioId, logoUrl) {
+  try {
+    const response = await fetch(`${SUPABASE_URL}/rest/v1/estudios_marca?id=eq.${estudioId}`, {
+      method: 'PATCH',
+      headers: {
+        'apikey': SUPABASE_ANON_KEY,
+        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=minimal'
+      },
+      body: JSON.stringify({
+        logo_seleccionado: logoUrl,
+        logo_origen: logoUrl.includes('usuario') ? 'usuario_subido' : 'generado'
+      })
+    });
+    
+    if (response.ok) {
+      console.log('✅ Logo guardado en Supabase:', logoUrl);
+      return true;
+    } else {
+      console.error('❌ Error guardando logo:', await response.text());
+      return false;
+    }
+  } catch (e) {
+    console.error('❌ Error:', e);
+    return false;
+  }
+}
+
+// Llamar cuando usuario selecciona un logo:
+// await guardarLogoSeleccionado(estudioId, urlDelLogoSeleccionado);
+```
+
+---
+
+## CAMBIO 4: Quitar campo "tipo de signo" en página Titular
+**Archivo: titular.js o titular.html**
+
+Busca el campo de tipo_signo y:
+- Si es un `<select>` o `<input>`: agrégale `style="display:none"` o elimínalo
+- Agrega este código para hardcodearlo automáticamente:
+
+```javascript
+// Al cargar la página, hardcodear tipo_signo = 'marca'
+// Si guardas en sessionStorage/localStorage:
+sessionStorage.setItem('tipo_signo', 'marca');
+
+// Si lo mandas al webhook, asegúrate de incluir siempre:
+// tipo_signo: 'marca'  (no tomarlo del formulario)
+```
+
+---
+
+## INSTRUCCIONES PARA REPLIT AGENT
+
+Puedes darle exactamente estas instrucciones al agente para minimizar créditos:
+
+**Mensaje para el agente:**
+"Haz SOLO estos 4 cambios pequeños, no modifiques nada más:
+1. En la llamada al webhook buscar-impi, agrega `todas_las_clases` al body (array con todas las clases del estudio)
+2. En el render de resultados IMPI, muestra primero las marcas de `marcas_en_conflicto` con badge de conflicto, y las de `otras_marcas` en un acordeón colapsado
+3. Cuando el usuario seleccione un logo, llama a Supabase PATCH para guardar `logo_seleccionado` con la URL del logo
+4. En el formulario de titular, oculta/elimina el campo tipo_signo y hardcodea siempre 'marca'"
