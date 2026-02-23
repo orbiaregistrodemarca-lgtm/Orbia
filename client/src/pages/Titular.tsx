@@ -27,7 +27,7 @@ const ESTADOS_MEXICO = [
 const WEBHOOK_TITULAR = 'https://n8n.srv1175451.hstgr.cloud/webhook/datos-titular';
 
 type TipoPersona = 'persona_fisica' | 'persona_moral';
-type TipoSigno = 'marca' | 'nombre_comercial' | 'aviso_comercial' | 'marca_colectiva';
+type TipoSigno = 'marca';
 
 interface FormErrors {
   [key: string]: string;
@@ -66,7 +66,7 @@ export default function Titular() {
   const [codigoPostal, setCodigoPostal] = useState('');
   const [pais, setPais] = useState('México');
   
-  const [tipoSigno, setTipoSigno] = useState<TipoSigno>('marca');
+  const tipoSigno: TipoSigno = 'marca';
   const [noSeHaUsado, setNoSeHaUsado] = useState(true);
   const [fechaPrimerUso, setFechaPrimerUso] = useState('');
   const [nombreFirmante, setNombreFirmante] = useState('');
@@ -498,21 +498,6 @@ export default function Titular() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium">Tipo de signo</Label>
-                  <Select value={tipoSigno} onValueChange={(v) => setTipoSigno(v as TipoSigno)}>
-                    <SelectTrigger data-testid="select-tipo-signo">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="marca">Marca</SelectItem>
-                      <SelectItem value="nombre_comercial">Nombre Comercial</SelectItem>
-                      <SelectItem value="aviso_comercial">Aviso Comercial</SelectItem>
-                      <SelectItem value="marca_colectiva">Marca Colectiva</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
                 <div className="flex items-center space-x-3 p-4 bg-slate-50 rounded-lg border">
                   <Checkbox
                     id="noSeHaUsado"

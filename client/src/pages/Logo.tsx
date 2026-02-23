@@ -198,6 +198,29 @@ export default function Logo() {
     }
   };
 
+  const guardarLogoEnSupabase = async (logoUrl: string, origen: string) => {
+    try {
+      if (!estudioId) return;
+
+      const response = await fetch(`/api/estudios/${estudioId}/logo`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          logo_seleccionado: logoUrl,
+          logo_origen: origen
+        })
+      });
+
+      if (response.ok) {
+        console.log('✅ Logo guardado en Supabase:', logoUrl);
+      } else {
+        console.error('❌ Error guardando logo en Supabase:', await response.text());
+      }
+    } catch (e) {
+      console.error('❌ Error guardando logo en Supabase:', e);
+    }
+  };
+
   const selectLogo = (logoUrl: string) => {
     setSelectedLogo(logoUrl);
   };
@@ -246,9 +269,11 @@ export default function Logo() {
         logoData.logo_alternativa_1_url = null;
         logoData.logo_alternativa_2_url = null;
         localStorage.setItem('orbia_selected_logo', 'usuario_subido');
+        guardarLogoEnSupabase('usuario_subido', 'usuario_subido');
       } else if (selectedLogo) {
         logoData.logo_seleccionado = selectedLogo;
         localStorage.setItem('orbia_selected_logo', selectedLogo);
+        guardarLogoEnSupabase(selectedLogo, 'generado');
       }
       
       localStorage.setItem('orbia_logo_result', JSON.stringify(logoData));
