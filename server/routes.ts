@@ -3,6 +3,7 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { classificationInputSchema, insertEstudioMarcaSchema } from "@shared/schema";
 import { z } from "zod";
+import { getSupabase } from "./supabase";
 
 const WEBHOOK_URL = 'https://orbia.app.n8n.cloud/webhook/clasificar-marca';
 
@@ -125,6 +126,64 @@ export async function registerRoutes(
     }
   });
 
+  app.post('/api/estudios/:estudioId/upload-logo', async (req, res) => {
+    try {
+      const { estudioId } = req.params;
+      const { logo_base64, nombre_marca } = req.body;
+
+      if (!estudioId || !logo_base64) {
+        return res.status(400).json({ message: 'Faltan datos requeridos' });
+      }
+
+      const supabase = getSupabase();
+
+      const matches = logo_base64.match(/^data:image\/(\w+);base64,(.+)$/);
+      if (!matches) {
+        return res.status(400).json({ message: 'Formato de imagen inválido' });
+      }
+
+      const ext = matches[1] === 'jpeg' ? 'jpg' : matches[1];
+      const base64Data = matches[2];
+      const buffer = Buffer.from(base64Data, 'base64');
+      const safeName = (nombre_marca || 'logo').replace(/[^a-zA-Z0-9_-]/g, '_');
+      const fileName = `${safeName}_usuario_${estudioId}.${ext}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('documents')
+        .upload(fileName, buffer, {
+          contentType: `image/${matches[1]}`,
+          upsert: true
+        });
+
+      if (uploadError) {
+        console.error('Error subiendo logo a Storage:', uploadError);
+        return res.status(500).json({ message: 'Error subiendo logo', error: uploadError.message });
+      }
+
+      const { data: publicUrlData } = supabase.storage
+        .from('documents')
+        .getPublicUrl(fileName);
+
+      const publicUrl = publicUrlData.publicUrl;
+
+      const { error: updateError } = await supabase
+        .from('estudios_marca')
+        .update({ logo_seleccionado: publicUrl, logo_origen: 'usuario_subido' })
+        .eq('id', estudioId);
+
+      if (updateError) {
+        console.error('Error actualizando estudio:', updateError);
+        return res.status(500).json({ message: 'Error guardando referencia', error: updateError.message });
+      }
+
+      console.log('✅ Logo subido y guardado:', publicUrl);
+      res.json({ success: true, logo_url: publicUrl });
+    } catch (error) {
+      console.error('Error en POST /api/estudios/:id/upload-logo:', error);
+      res.status(500).json({ message: error instanceof Error ? error.message : 'Error interno' });
+    }
+  });
+
   app.patch('/api/estudios/:estudioId/logo', async (req, res) => {
     try {
       const { estudioId } = req.params;
@@ -134,7 +193,6 @@ export async function registerRoutes(
         return res.status(400).json({ message: 'Faltan datos requeridos' });
       }
 
-      const { getSupabase } = await import('./supabase');
       const supabase = getSupabase();
       
       const { error } = await supabase

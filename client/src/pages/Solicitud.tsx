@@ -9,7 +9,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   FileText, ArrowRight, ArrowLeft, Loader2, CheckCircle, 
   AlertCircle, ExternalLink, Download, Briefcase,
-  User, MapPin, Mail, Phone, Tag, Shield, Image as ImageIcon
+  User, MapPin, Mail, Phone, Tag, Shield, Image as ImageIcon,
+  Copy, Eye
 } from 'lucide-react';
 
 const WEBHOOK_URL = 'https://n8n.srv1175451.hstgr.cloud/webhook/generar-solicitud';
@@ -43,6 +44,14 @@ export default function Solicitud() {
   const [instrucciones, setInstrucciones] = useState<string | null>(null);
   const [errores, setErrores] = useState<string[]>([]);
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
+  const [iframeError, setIframeError] = useState(false);
+  const [urlCopied, setUrlCopied] = useState(false);
+
+  useEffect(() => {
+    if (documentoUrl) {
+      setIframeError(false);
+    }
+  }, [documentoUrl]);
 
   useEffect(() => {
     const storedResult = localStorage.getItem('orbia_last_result');
@@ -354,6 +363,16 @@ export default function Solicitud() {
     </motion.div>
   );
 
+  const copyUrl = () => {
+    if (documentoUrl) {
+      navigator.clipboard.writeText(documentoUrl).then(() => {
+        setUrlCopied(true);
+        setTimeout(() => setUrlCopied(false), 2000);
+        toast({ title: "URL copiada", description: "La URL del documento se copió al portapapeles" });
+      });
+    }
+  };
+
   const renderSuccess = () => (
     <motion.div
       initial={{ opacity: 0, scale: 0.95 }}
@@ -371,7 +390,7 @@ export default function Solicitud() {
             ¡Solicitud generada exitosamente!
           </h2>
           <p className="text-emerald-700 mb-6">
-            Tu documento de solicitud IMPI está listo para descargar.
+            Tu documento de solicitud IMPI está listo para revisar y descargar.
           </p>
         </CardContent>
       </Card>
@@ -380,27 +399,52 @@ export default function Solicitud() {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <FileText className="w-5 h-5 text-primary" />
-              Tu Solicitud IMPI
+              <Eye className="w-5 h-5 text-primary" />
+              Vista previa del documento
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg border">
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                  <FileText className="w-6 h-6 text-blue-600" />
-                </div>
-                <div>
-                  <p className="font-medium">Solicitud IMPI - {nombreMarca}</p>
-                  <p className="text-sm text-muted-foreground">Documento listo para descargar</p>
-                </div>
+            {!iframeError ? (
+              <div className="border rounded-lg overflow-hidden bg-white" style={{ minHeight: '500px' }}>
+                <iframe
+                  src={documentoUrl}
+                  className="w-full border-0"
+                  style={{ height: '600px' }}
+                  title="Vista previa de solicitud IMPI"
+                  onError={() => setIframeError(true)}
+                  data-testid="iframe-pdf-preview"
+                />
               </div>
+            ) : (
+              <div className="border-2 border-dashed border-slate-300 rounded-lg p-8 text-center bg-slate-50">
+                <FileText className="w-16 h-16 text-slate-400 mx-auto mb-4" />
+                <p className="text-slate-600 mb-4">
+                  La vista previa no está disponible. Usa el botón para ver el documento.
+                </p>
+                <Button
+                  size="lg"
+                  onClick={() => window.open(documentoUrl, '_blank')}
+                  className="bg-primary py-6 px-8 text-lg"
+                  data-testid="button-view-pdf-fallback"
+                >
+                  <Eye className="w-5 h-5 mr-2" />
+                  Ver PDF en nueva pestaña
+                </Button>
+              </div>
+            )}
+
+            <div className="flex items-center gap-2 p-3 bg-slate-50 rounded-lg border">
+              <FileText className="w-4 h-4 text-muted-foreground shrink-0" />
+              <code className="text-xs text-muted-foreground flex-1 truncate" data-testid="text-documento-url">
+                {documentoUrl}
+              </code>
               <Button
-                onClick={() => window.open(documentoUrl, '_blank')}
-                data-testid="button-view-document"
+                variant="ghost"
+                size="sm"
+                onClick={copyUrl}
+                data-testid="button-copy-url"
               >
-                <ExternalLink className="w-4 h-4 mr-2" />
-                Abrir
+                {urlCopied ? <CheckCircle className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4" />}
               </Button>
             </div>
 
@@ -409,7 +453,7 @@ export default function Solicitud() {
                 <div className="flex items-start gap-2">
                   <AlertCircle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
                   <div>
-                    <p className="font-medium text-amber-800">Instrucciones para PDF:</p>
+                    <p className="font-medium text-amber-800">Instrucciones:</p>
                     <p className="text-sm text-amber-700 mt-1">{instrucciones}</p>
                   </div>
                 </div>
@@ -428,7 +472,7 @@ export default function Solicitud() {
               data-testid="button-open-document"
             >
               <ExternalLink className="w-5 h-5 mr-2" />
-              Abrir mi Solicitud
+              Abrir en nueva pestaña
             </Button>
             <Button
               variant="outline"
@@ -436,7 +480,7 @@ export default function Solicitud() {
               onClick={() => {
                 const link = document.createElement('a');
                 link.href = documentoUrl;
-                link.download = `Solicitud_IMPI_${nombreMarca.replace(/\s+/g, '_')}.html`;
+                link.download = `Solicitud_IMPI_${nombreMarca.replace(/\s+/g, '_')}.pdf`;
                 document.body.appendChild(link);
                 link.click();
                 document.body.removeChild(link);
