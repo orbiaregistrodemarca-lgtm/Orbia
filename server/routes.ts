@@ -149,7 +149,7 @@ export async function registerRoutes(
       const fileName = `${safeName}_usuario_${estudioId}.${ext}`;
 
       const { error: uploadError } = await supabase.storage
-        .from('documents')
+        .from('logos')
         .upload(fileName, buffer, {
           contentType: `image/${matches[1]}`,
           upsert: true
@@ -161,7 +161,7 @@ export async function registerRoutes(
       }
 
       const { data: publicUrlData } = supabase.storage
-        .from('documents')
+        .from('logos')
         .getPublicUrl(fileName);
 
       const publicUrl = publicUrlData.publicUrl;
