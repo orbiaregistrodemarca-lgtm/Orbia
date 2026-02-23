@@ -126,6 +126,15 @@ export async function registerRoutes(
     }
   });
 
+  const SUPABASE_URL = 'https://zxlzcbohvjqlwmojejee.supabase.co';
+
+  const getSupabaseKey = () => {
+    const url = (process.env.SUPABASE_URL || '').trim();
+    const key = (process.env.SUPABASE_ANON_KEY || '').trim();
+    if (url.startsWith('eyJ')) return url;
+    return key;
+  };
+
   app.post('/api/estudios/:estudioId/upload-logo', async (req, res) => {
     try {
       const { estudioId } = req.params;
@@ -134,8 +143,6 @@ export async function registerRoutes(
       if (!estudioId || !logo_base64) {
         return res.status(400).json({ message: 'Faltan datos requeridos' });
       }
-
-      const supabase = getSupabase();
 
       const matches = logo_base64.match(/^data:image\/(\w+);base64,(.+)$/);
       if (!matches) {
@@ -148,32 +155,52 @@ export async function registerRoutes(
       const safeName = (nombre_marca || 'logo').replace(/[^a-zA-Z0-9_-]/g, '_');
       const fileName = `${safeName}_usuario_${estudioId}.${ext}`;
 
-      const { error: uploadError } = await supabase.storage
-        .from('logos')
-        .upload(fileName, buffer, {
-          contentType: `image/${matches[1]}`,
-          upsert: true
-        });
+      const apiKey = getSupabaseKey();
 
-      if (uploadError) {
-        console.error('Error subiendo logo a Storage:', uploadError);
-        return res.status(500).json({ message: 'Error subiendo logo', error: uploadError.message });
+      const uploadResponse = await fetch(
+        `${SUPABASE_URL}/storage/v1/object/logos/${fileName}`,
+        {
+          method: 'POST',
+          headers: {
+            'apikey': apiKey,
+            'Authorization': `Bearer ${apiKey}`,
+            'Content-Type': `image/${matches[1]}`,
+            'x-upsert': 'true',
+          },
+          body: buffer,
+        }
+      );
+
+      if (!uploadResponse.ok) {
+        const errText = await uploadResponse.text();
+        console.error('Error subiendo logo a Storage:', errText);
+        return res.status(500).json({ message: 'Error subiendo logo', error: errText });
       }
 
-      const { data: publicUrlData } = supabase.storage
-        .from('logos')
-        .getPublicUrl(fileName);
+      const publicUrl = `${SUPABASE_URL}/storage/v1/object/public/logos/${fileName}`;
 
-      const publicUrl = publicUrlData.publicUrl;
+      const patchResponse = await fetch(
+        `${SUPABASE_URL}/rest/v1/estudios_marca?id=eq.${estudioId}`,
+        {
+          method: 'PATCH',
+          headers: {
+            'apikey': apiKey,
+            'Authorization': `Bearer ${apiKey}`,
+            'Content-Type': 'application/json',
+            'Prefer': 'return=minimal',
+          },
+          body: JSON.stringify({
+            logo_seleccionado: publicUrl,
+            logo_url: publicUrl,
+            logo_origen: 'usuario_subido',
+          }),
+        }
+      );
 
-      const { error: updateError } = await supabase
-        .from('estudios_marca')
-        .update({ logo_seleccionado: publicUrl, logo_origen: 'usuario_subido' })
-        .eq('id', estudioId);
-
-      if (updateError) {
-        console.error('Error actualizando estudio:', updateError);
-        return res.status(500).json({ message: 'Error guardando referencia', error: updateError.message });
+      if (!patchResponse.ok) {
+        const errText = await patchResponse.text();
+        console.error('Error actualizando estudio:', errText);
+        return res.status(500).json({ message: 'Error guardando referencia', error: errText });
       }
 
       console.log('✅ Logo subido y guardado:', publicUrl);
@@ -193,16 +220,30 @@ export async function registerRoutes(
         return res.status(400).json({ message: 'Faltan datos requeridos' });
       }
 
-      const supabase = getSupabase();
-      
-      const { error } = await supabase
-        .from('estudios_marca')
-        .update({ logo_seleccionado, logo_origen })
-        .eq('id', estudioId);
+      const apiKey = getSupabaseKey();
 
-      if (error) {
-        console.error('Error guardando logo en Supabase:', error);
-        return res.status(500).json({ message: 'Error guardando logo', error: error.message });
+      const patchResponse = await fetch(
+        `${SUPABASE_URL}/rest/v1/estudios_marca?id=eq.${estudioId}`,
+        {
+          method: 'PATCH',
+          headers: {
+            'apikey': apiKey,
+            'Authorization': `Bearer ${apiKey}`,
+            'Content-Type': 'application/json',
+            'Prefer': 'return=minimal',
+          },
+          body: JSON.stringify({
+            logo_seleccionado,
+            logo_url: logo_seleccionado,
+            logo_origen,
+          }),
+        }
+      );
+
+      if (!patchResponse.ok) {
+        const errText = await patchResponse.text();
+        console.error('Error guardando logo en Supabase:', errText);
+        return res.status(500).json({ message: 'Error guardando logo', error: errText });
       }
 
       res.json({ success: true });
