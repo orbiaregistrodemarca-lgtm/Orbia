@@ -198,7 +198,34 @@ export default function Logo() {
     }
   };
 
-  const guardarLogoEnSupabase = async (logoUrl: string, origen: string) => {
+  const subirLogoUsuario = async (base64: string): Promise<string | null> => {
+    try {
+      if (!estudioId) return null;
+
+      const response = await fetch(`/api/estudios/${estudioId}/upload-logo`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          logo_base64: base64,
+          nombre_marca: brandName
+        })
+      });
+
+      const data = await response.json();
+      if (response.ok && data.logo_url) {
+        console.log('✅ Logo subido a Supabase Storage:', data.logo_url);
+        return data.logo_url;
+      } else {
+        console.error('❌ Error subiendo logo:', data.message);
+        return null;
+      }
+    } catch (e) {
+      console.error('❌ Error subiendo logo:', e);
+      return null;
+    }
+  };
+
+  const guardarLogoGenerado = async (logoUrl: string) => {
     try {
       if (!estudioId) return;
 
@@ -207,12 +234,12 @@ export default function Logo() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           logo_seleccionado: logoUrl,
-          logo_origen: origen
+          logo_origen: 'generado'
         })
       });
 
       if (response.ok) {
-        console.log('✅ Logo guardado en Supabase:', logoUrl);
+        console.log('✅ Logo generado guardado en Supabase:', logoUrl);
       } else {
         console.error('❌ Error guardando logo en Supabase:', await response.text());
       }
@@ -250,7 +277,9 @@ export default function Logo() {
     }
   };
 
-  const handleContinue = () => {
+  const [isSavingLogo, setIsSavingLogo] = useState(false);
+
+  const handleContinue = async () => {
     if (!selectedLogo && hasAlternatives) {
       toast({
         variant: "destructive",
@@ -261,19 +290,43 @@ export default function Logo() {
     }
     
     if (result) {
+      setIsSavingLogo(true);
       const logoData: any = { ...result };
       
-      if (uploadedLogoDataUrl && result.logo_origen === 'subido') {
-        logoData.logo_origen = 'usuario_subido';
-        logoData.logo_seleccionado = 'usuario_subido';
-        logoData.logo_alternativa_1_url = null;
-        logoData.logo_alternativa_2_url = null;
-        localStorage.setItem('orbia_selected_logo', 'usuario_subido');
-        guardarLogoEnSupabase('usuario_subido', 'usuario_subido');
-      } else if (selectedLogo) {
-        logoData.logo_seleccionado = selectedLogo;
-        localStorage.setItem('orbia_selected_logo', selectedLogo);
-        guardarLogoEnSupabase(selectedLogo, 'generado');
+      try {
+        if (uploadedLogoDataUrl && result.logo_origen === 'subido') {
+          const publicUrl = await subirLogoUsuario(uploadedLogoDataUrl);
+          logoData.logo_origen = 'usuario_subido';
+          logoData.logo_alternativa_1_url = null;
+          logoData.logo_alternativa_2_url = null;
+          if (publicUrl) {
+            logoData.logo_seleccionado = publicUrl;
+            localStorage.setItem('orbia_selected_logo', publicUrl);
+          } else {
+            toast({
+              variant: "destructive",
+              title: "Error al subir logo",
+              description: "No se pudo guardar tu logo. Intenta de nuevo.",
+            });
+            setIsSavingLogo(false);
+            return;
+          }
+        } else if (selectedLogo) {
+          logoData.logo_seleccionado = selectedLogo;
+          localStorage.setItem('orbia_selected_logo', selectedLogo);
+          await guardarLogoGenerado(selectedLogo);
+        }
+      } catch (e) {
+        console.error('Error guardando logo:', e);
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: "No se pudo guardar el logo. Intenta de nuevo.",
+        });
+        setIsSavingLogo(false);
+        return;
+      } finally {
+        setIsSavingLogo(false);
       }
       
       localStorage.setItem('orbia_logo_result', JSON.stringify(logoData));
@@ -990,10 +1043,14 @@ export default function Logo() {
                   size="lg" 
                   className="flex-1 py-6 text-lg bg-primary shadow-xl hover:shadow-2xl transition-all disabled:opacity-50"
                   onClick={handleContinue}
-                  disabled={!!hasAlternatives && !selectedLogo}
+                  disabled={(!!hasAlternatives && !selectedLogo) || isSavingLogo}
                   data-testid="button-continue"
                 >
-                  Continuar <ArrowRight className="ml-2 w-5 h-5" />
+                  {isSavingLogo ? (
+                    <><Loader2 className="mr-2 w-5 h-5 animate-spin" /> Guardando logo...</>
+                  ) : (
+                    <>Continuar <ArrowRight className="ml-2 w-5 h-5" /></>
+                  )}
                 </Button>
                 <Button
                   variant="outline"
