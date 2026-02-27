@@ -3,6 +3,8 @@ import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 import { LogOut } from 'lucide-react';
 
+const ORBIA_MASCOT_URL = 'https://res.cloudinary.com/dz964kisp/image/upload/v1764954057/orbia_mascot_sz8nnb.png';
+
 export function Header() {
   const [location, navigate] = useLocation();
   const { user, loading, signOut } = useAuth();
@@ -16,8 +18,8 @@ export function Header() {
     <header className="sticky top-0 z-50 w-full border-b bg-background/80 backdrop-blur-md">
       <div className="container mx-auto px-4 h-16 flex items-center justify-between">
         <Link href="/" className="flex items-center gap-2 font-display font-bold text-2xl text-primary hover:opacity-90 transition-opacity">
-          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-secondary to-accent flex items-center justify-center text-white text-xs">
-            O
+          <div className="w-9 h-9 rounded-full bg-gradient-to-br from-secondary to-accent flex items-center justify-center overflow-hidden">
+            <img src={ORBIA_MASCOT_URL} alt="ORBIA" className="w-8 h-8 object-contain" />
           </div>
           ORBIA
         </Link>

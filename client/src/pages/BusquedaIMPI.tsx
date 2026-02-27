@@ -8,7 +8,8 @@ import { useToast } from '@/hooks/use-toast';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Search, ArrowRight, ArrowLeft, Loader2, CheckCircle, 
-  AlertTriangle, AlertCircle, FileText, RefreshCw, XCircle
+  AlertTriangle, AlertCircle, FileText, RefreshCw, XCircle,
+  ChevronDown, ChevronUp, ExternalLink, Shield, ShieldAlert, ShieldCheck, ShieldX
 } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 
@@ -188,26 +189,6 @@ export default function BusquedaIMPI() {
     setLocation('/clasificar');
   };
 
-  const getNivelRiesgoStyle = (nivel: string) => {
-    switch (nivel) {
-      case 'ALTO': return 'bg-red-100 text-red-800 border-red-300';
-      case 'MEDIO': return 'bg-amber-100 text-amber-800 border-amber-300';
-      case 'BAJO': return 'bg-blue-100 text-blue-800 border-blue-300';
-      case 'NINGUNO': return 'bg-emerald-100 text-emerald-800 border-emerald-300';
-      default: return 'bg-slate-100 text-slate-800 border-slate-300';
-    }
-  };
-
-  const getNivelRiesgoIcon = (nivel: string) => {
-    switch (nivel) {
-      case 'ALTO': return <XCircle className="w-6 h-6 text-red-600" />;
-      case 'MEDIO': return <AlertTriangle className="w-6 h-6 text-amber-600" />;
-      case 'BAJO': return <AlertCircle className="w-6 h-6 text-blue-600" />;
-      case 'NINGUNO': return <CheckCircle className="w-6 h-6 text-emerald-600" />;
-      default: return <Search className="w-6 h-6 text-slate-600" />;
-    }
-  };
-
   const getMascotState = () => {
     if (pageState === 'loading') return 'thinking';
     if (pageState === 'error') return 'worried';
@@ -215,6 +196,48 @@ export default function BusquedaIMPI() {
     if (resultado?.analisis.nivel_riesgo === 'ALTO') return 'worried';
     if (resultado?.analisis.nivel_riesgo === 'NINGUNO') return 'happy';
     return 'idle';
+  };
+
+  const getBannerConfig = (nivel: string) => {
+    switch (nivel) {
+      case 'NINGUNO':
+      case 'BAJO':
+        return {
+          bg: 'bg-emerald-50 border-emerald-300',
+          text: 'text-emerald-900',
+          subtext: 'text-emerald-700',
+          icon: <ShieldCheck className="w-7 h-7 text-emerald-600" />,
+          title: 'Puedes registrar esta marca',
+          badgeBg: 'bg-emerald-100 text-emerald-800 border-emerald-300',
+        };
+      case 'MEDIO':
+        return {
+          bg: 'bg-amber-50 border-amber-300',
+          text: 'text-amber-900',
+          subtext: 'text-amber-700',
+          icon: <ShieldAlert className="w-7 h-7 text-amber-600" />,
+          title: 'Procede con precaucion',
+          badgeBg: 'bg-amber-100 text-amber-800 border-amber-300',
+        };
+      case 'ALTO':
+        return {
+          bg: 'bg-red-50 border-red-300',
+          text: 'text-red-900',
+          subtext: 'text-red-700',
+          icon: <ShieldX className="w-7 h-7 text-red-600" />,
+          title: 'Conflicto detectado',
+          badgeBg: 'bg-red-100 text-red-800 border-red-300',
+        };
+      default:
+        return {
+          bg: 'bg-slate-50 border-slate-300',
+          text: 'text-slate-900',
+          subtext: 'text-slate-700',
+          icon: <Shield className="w-7 h-7 text-slate-600" />,
+          title: 'Resultado de busqueda',
+          badgeBg: 'bg-slate-100 text-slate-800 border-slate-300',
+        };
+    }
   };
 
   const renderLoading = () => (
@@ -263,7 +286,7 @@ export default function BusquedaIMPI() {
         <CardContent className="pt-8 pb-8 text-center">
           <AlertCircle className="w-16 h-16 text-red-600 mx-auto mb-4" />
           <h2 className="text-xl font-bold text-red-800 mb-2">
-            Error en la búsqueda
+            Error en la busqueda
           </h2>
           <p className="text-red-700 mb-6">{error}</p>
           
@@ -281,188 +304,224 @@ export default function BusquedaIMPI() {
     </motion.div>
   );
 
+  const renderMarca = (marca: MarcaEncontrada, index: number, isConflict: boolean = false) => (
+    <div 
+      key={index}
+      className={`border rounded-xl p-4 transition-all ${isConflict ? 'bg-red-50/80 border-red-200 shadow-sm' : 'bg-white border-slate-200 hover:border-slate-300'}`}
+      data-testid={`marca-encontrada-${index}`}
+    >
+      <div className="flex justify-between items-start gap-4">
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 mb-1">
+            <p className="font-semibold text-slate-800 text-base">{marca.denominacion || 'Sin nombre'}</p>
+            {isConflict && (
+              <Badge variant="destructive" className="text-[10px] px-1.5 py-0 h-5 shrink-0" data-testid={`badge-tu-clase-${index}`}>
+                Tu clase
+              </Badge>
+            )}
+          </div>
+          <div className="space-y-0.5">
+            <p className="text-sm text-muted-foreground">
+              Exp: {marca.expediente || 'N/A'} {marca.registro ? `| Reg: ${marca.registro}` : ''}
+            </p>
+            {marca.titular && (
+              <p className="text-sm text-muted-foreground truncate">
+                Titular: {marca.titular}
+              </p>
+            )}
+            {marca.clases_en_conflicto && marca.clases_en_conflicto.length > 0 && (
+              <p className="text-sm font-semibold text-red-600 mt-1">
+                Conflicto en clase {marca.clases_en_conflicto.join(', ')}
+              </p>
+            )}
+          </div>
+          <div className="flex items-center gap-3 mt-2 flex-wrap">
+            {marca.similitud != null && (
+              <span className="text-xs bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full">
+                Similitud: {marca.similitud}%
+              </span>
+            )}
+            {marca.fecha_vencimiento && (
+              <span className="text-xs bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full">
+                Vence: {marca.fecha_vencimiento}
+              </span>
+            )}
+          </div>
+        </div>
+        <div className="text-right shrink-0 space-y-1.5">
+          <Badge variant={marca.vigente === false ? 'outline' : 'secondary'} className={marca.vigente === false ? 'opacity-60' : ''}>
+            {marca.clases ? `Clases: ${marca.clases.join(', ')}` : `Clase ${marca.clase || 'N/A'}`}
+          </Badge>
+          <p className={`text-xs ${marca.vigente ? 'text-red-600 font-semibold' : 'text-muted-foreground'}`}>
+            {marca.estado || 'Estado desconocido'}
+          </p>
+          {marca.link_impi && (
+            <a 
+              href={marca.link_impi} 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              className="inline-flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800 hover:underline font-medium"
+              data-testid={`link-expediente-${index}`}
+            >
+              Ver expediente <ExternalLink className="w-3 h-3" />
+            </a>
+          )}
+        </div>
+      </div>
+      {marca.imagen_url && (
+        <img src={marca.imagen_url} alt={marca.denominacion} className="mt-3 max-h-16 object-contain rounded" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+      )}
+    </div>
+  );
+
   const renderSuccess = () => {
     if (!resultado) return null;
     
     const { analisis, resultado_busqueda } = resultado;
+    const banner = getBannerConfig(analisis.nivel_riesgo);
+    const marcasConflicto = resultado_busqueda.marcas_en_conflicto || [];
+    const marcasOtras = resultado_busqueda.otras_marcas || [];
+    const marcasFallback = (!marcasConflicto.length && !marcasOtras.length) ? (resultado_busqueda.marcas_similares || []) : [];
     
     return (
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
-        className="space-y-6"
+        className="space-y-5"
       >
         <div className="flex justify-center">
           <OrbiaMascot state={getMascotState()} size="lg" />
         </div>
 
-        <Card className={`border-2 ${getNivelRiesgoStyle(analisis.nivel_riesgo)}`}>
-          <CardContent className="pt-6 pb-6">
-            <div className="flex items-center justify-between flex-wrap gap-4">
-              <div className="flex items-center gap-3">
-                {getNivelRiesgoIcon(analisis.nivel_riesgo)}
-                <div>
-                  <p className="font-bold text-lg">
-                    Riesgo {analisis.nivel_riesgo}
-                  </p>
-                  <p className="text-sm opacity-80">
-                    Score: {analisis.score}/100
-                  </p>
-                </div>
-              </div>
-              <div className="text-right">
-                <Badge variant="outline" className="mb-1">
-                  {resultado_busqueda.total_marcas_encontradas} marca(s) encontrada(s)
-                </Badge>
-                {resultado_busqueda.marca_exacta_existe && (
-                  <p className="text-xs font-semibold text-red-600">
-                    ⚠️ Marca exacta existe
-                  </p>
-                )}
-              </div>
+        <div className={`rounded-2xl border-2 p-5 ${banner.bg}`} data-testid="banner-riesgo">
+          <div className="flex items-center gap-4">
+            <div className="shrink-0">
+              {banner.icon}
             </div>
-          </CardContent>
-        </Card>
+            <div className="flex-1">
+              <h2 className={`text-xl font-bold ${banner.text}`} data-testid="text-banner-title">
+                {analisis.nivel_riesgo === 'NINGUNO' || analisis.nivel_riesgo === 'BAJO' ? '✅' : analisis.nivel_riesgo === 'MEDIO' ? '⚠️' : '❌'}{' '}
+                {banner.title}
+              </h2>
+              <p className={`text-sm mt-1 ${banner.subtext}`}>
+                {analisis.resumen}
+              </p>
+            </div>
+            <div className="text-right shrink-0">
+              <div className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-sm font-semibold ${banner.badgeBg}`}>
+                Score: {analisis.score}/100
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                {resultado_busqueda.total_marcas_encontradas} marca(s) encontrada(s)
+              </p>
+              {resultado_busqueda.marca_exacta_existe && (
+                <p className="text-xs font-bold text-red-600 mt-0.5">
+                  Marca exacta existe
+                </p>
+              )}
+            </div>
+          </div>
+        </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <FileText className="w-5 h-5 text-primary" />
-              Análisis de Conflictos
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-slate-700">{analisis.resumen}</p>
-          </CardContent>
-        </Card>
+        {analisis.detalle && (
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <FileText className="w-5 h-5 text-primary" />
+                Detalle del analisis
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-slate-700 text-sm leading-relaxed">{analisis.detalle}</p>
+            </CardContent>
+          </Card>
+        )}
 
-        {(() => {
-          const marcasConflicto = resultado_busqueda.marcas_en_conflicto || [];
-          const marcasOtras = resultado_busqueda.otras_marcas || [];
-          const marcasFallback = (!marcasConflicto.length && !marcasOtras.length) ? (resultado_busqueda.marcas_similares || []) : [];
+        {marcasConflicto.length > 0 && (
+          <Card className="border-red-200 overflow-hidden">
+            <CardHeader className="bg-red-50/50 pb-3">
+              <CardTitle className="flex items-center gap-2 text-lg text-red-800">
+                <AlertTriangle className="w-5 h-5" />
+                Conflictos en TUS clases
+                <Badge variant="destructive" className="ml-auto">{marcasConflicto.length}</Badge>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="pt-4">
+              <div className="space-y-3 max-h-96 overflow-y-auto">
+                {marcasConflicto.map((m, i) => renderMarca(m, i, true))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
-          const renderMarca = (marca: MarcaEncontrada, index: number, isConflict: boolean = false) => (
-            <div 
-              key={index}
-              className={`border rounded-lg p-3 ${isConflict ? 'bg-red-50 border-red-200' : 'bg-slate-50'}`}
-              data-testid={`marca-encontrada-${index}`}
+        {marcasOtras.length > 0 && (
+          <Card className="overflow-hidden">
+            <button
+              type="button"
+              className="w-full text-left"
+              onClick={() => setShowOtrasMarcas(!showOtrasMarcas)}
+              data-testid="button-toggle-otras-marcas"
             >
-              <div className="flex justify-between items-start gap-4">
-                <div className="flex-1 min-w-0">
-                  <p className="font-semibold text-slate-800">{marca.denominacion || 'Sin nombre'}</p>
-                  <p className="text-sm text-muted-foreground">
-                    Expediente: {marca.expediente || 'N/A'}
-                  </p>
-                  {marca.titular && (
-                    <p className="text-sm text-muted-foreground">
-                      Titular: {marca.titular}
-                    </p>
-                  )}
-                  {marca.clases_en_conflicto && marca.clases_en_conflicto.length > 0 && (
-                    <p className="text-sm font-semibold text-red-600 mt-1">
-                      Clase {marca.clases_en_conflicto.join(', ')} en conflicto
-                    </p>
-                  )}
-                  {marca.similitud != null && (
-                    <p className="text-xs text-muted-foreground mt-1">
-                      Similitud: {marca.similitud}%
-                    </p>
-                  )}
-                  {marca.fecha_vencimiento && (
-                    <p className="text-xs text-muted-foreground">
-                      Vence: {marca.fecha_vencimiento}
-                    </p>
-                  )}
-                </div>
-                <div className="text-right shrink-0">
-                  <Badge variant={marca.vigente === false ? 'outline' : 'secondary'} className={marca.vigente === false ? 'opacity-60' : ''}>
-                    {marca.clases ? `Clases: ${marca.clases.join(', ')}` : `Clase ${marca.clase || 'N/A'}`}
-                  </Badge>
-                  <p className={`text-xs mt-1 ${marca.vigente ? 'text-red-600 font-semibold' : 'text-muted-foreground'}`}>
-                    {marca.estado || 'Estado desconocido'}
-                  </p>
-                  {marca.link_impi && (
-                    <a href={marca.link_impi} target="_blank" rel="noopener noreferrer" className="text-xs text-blue-600 hover:underline mt-1 inline-block">
-                      Ver en IMPI
-                    </a>
-                  )}
-                </div>
+              <CardHeader className="pb-3 hover:bg-slate-50/80 transition-colors">
+                <CardTitle className="flex items-center gap-2 text-base text-slate-600 font-medium">
+                  {showOtrasMarcas ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
+                  {showOtrasMarcas ? 'Ocultar' : '+'} Ver otras marcas similares ({marcasOtras.length})
+                  <span className="text-xs text-muted-foreground ml-1 font-normal">
+                    — no afectan tu clase
+                  </span>
+                </CardTitle>
+              </CardHeader>
+            </button>
+            <AnimatePresence>
+              {showOtrasMarcas && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: 'auto', opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{ duration: 0.25 }}
+                  className="overflow-hidden"
+                >
+                  <CardContent className="pt-0 pb-4">
+                    <div className="space-y-3 max-h-72 overflow-y-auto">
+                      {marcasOtras.map((m, i) => renderMarca(m, i + marcasConflicto.length))}
+                    </div>
+                  </CardContent>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </Card>
+        )}
+
+        {marcasFallback.length > 0 && (
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <Search className="w-5 h-5 text-primary" />
+                Marcas encontradas en IMPI
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3 max-h-72 overflow-y-auto">
+                {marcasFallback.map((m, i) => renderMarca(m, i))}
               </div>
-              {marca.imagen_url && (
-                <img src={marca.imagen_url} alt={marca.denominacion} className="mt-2 max-h-16 object-contain rounded" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
-              )}
-            </div>
-          );
-
-          return (
-            <>
-              {marcasConflicto.length > 0 && (
-                <Card className="border-red-200">
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2 text-lg text-red-800">
-                      <AlertTriangle className="w-5 h-5" />
-                      Conflictos en TUS clases ({marcasConflicto.length})
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-3 max-h-80 overflow-y-auto">
-                      {marcasConflicto.map((m, i) => renderMarca(m, i, true))}
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
-
-              {marcasOtras.length > 0 && (
-                <Card>
-                  <CardHeader className="cursor-pointer" onClick={() => setShowOtrasMarcas(!showOtrasMarcas)}>
-                    <CardTitle className="flex items-center gap-2 text-lg">
-                      <Search className="w-5 h-5 text-primary" />
-                      Otras marcas similares en clases diferentes ({marcasOtras.length})
-                      <span className="text-xs text-muted-foreground ml-auto">
-                        {showOtrasMarcas ? '(clic para colapsar)' : '(clic para expandir)'}
-                      </span>
-                    </CardTitle>
-                  </CardHeader>
-                  {showOtrasMarcas && (
-                    <CardContent>
-                      <div className="space-y-3 max-h-60 overflow-y-auto">
-                        {marcasOtras.map((m, i) => renderMarca(m, i))}
-                      </div>
-                    </CardContent>
-                  )}
-                </Card>
-              )}
-
-              {marcasFallback.length > 0 && (
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2 text-lg">
-                      <Search className="w-5 h-5 text-primary" />
-                      Marcas encontradas en IMPI
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-3 max-h-60 overflow-y-auto">
-                      {marcasFallback.map((m, i) => renderMarca(m, i))}
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
-            </>
-          );
-        })()}
+            </CardContent>
+          </Card>
+        )}
 
         {analisis.recomendaciones && analisis.recomendaciones.length > 0 && (
-          <Card className="border-blue-200 bg-blue-50">
-            <CardHeader>
+          <Card className="border-blue-200 bg-blue-50/50">
+            <CardHeader className="pb-3">
               <CardTitle className="flex items-center gap-2 text-lg text-blue-800">
                 💡 Recomendaciones
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <ul className="list-disc list-inside text-blue-700 text-sm space-y-1">
+              <ul className="space-y-2">
                 {analisis.recomendaciones.map((rec, index) => (
-                  <li key={index}>{rec}</li>
+                  <li key={index} className="flex items-start gap-2 text-blue-700 text-sm">
+                    <span className="mt-1 w-1.5 h-1.5 rounded-full bg-blue-400 shrink-0" />
+                    {rec}
+                  </li>
                 ))}
               </ul>
             </CardContent>
@@ -511,7 +570,7 @@ export default function BusquedaIMPI() {
             data-testid="button-back"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
-            Volver a clasificación
+            Volver a clasificacion
           </Button>
         </div>
       </motion.div>
@@ -530,7 +589,7 @@ export default function BusquedaIMPI() {
             Paso 1.5 de 4
           </Badge>
           <h1 className="text-3xl font-bold text-slate-900 mb-2">
-            Verificación IMPI
+            Verificacion IMPI
           </h1>
           <p className="text-muted-foreground">
             Buscamos tu marca en el registro oficial del IMPI
