@@ -147,7 +147,7 @@ export default function Solicitud() {
       case 'ALTA': return 'bg-emerald-100 text-emerald-800 border-emerald-300';
       case 'MEDIA': return 'bg-amber-100 text-amber-800 border-amber-300';
       case 'BAJA': return 'bg-red-100 text-red-800 border-red-300';
-      default: return 'bg-slate-100 text-slate-800 border-slate-300';
+      default: return 'bg-muted/50 text-muted-foreground border-border';
     }
   };
 
@@ -180,7 +180,7 @@ export default function Solicitud() {
           {descripcionJuridica && (
             <div>
               <span className="text-muted-foreground text-sm">Descripción jurídica:</span>
-              <p className="text-sm mt-1 bg-slate-50 p-3 rounded-lg border">
+              <p className="text-sm mt-1 bg-muted/30 p-3 rounded-lg border">
                 {descripcionJuridica}
               </p>
             </div>
@@ -206,7 +206,7 @@ export default function Solicitud() {
           </CardHeader>
           <CardContent>
             <div className="flex justify-center">
-              <div className="bg-slate-50 p-4 rounded-lg border">
+              <div className="bg-muted/30 p-4 rounded-lg border">
                 <img 
                   src={logoUrl} 
                   alt="Logo de la marca" 
@@ -279,7 +279,7 @@ export default function Solicitud() {
             {titularData.titular.rfc && (
               <div className="flex items-center justify-between">
                 <span className="text-muted-foreground">RFC:</span>
-                <code className="bg-slate-100 px-2 py-1 rounded text-sm">
+                <code className="bg-muted/50 px-2 py-1 rounded text-sm">
                   {titularData.titular.rfc}
                 </code>
               </div>
@@ -352,7 +352,7 @@ export default function Solicitud() {
         Estamos preparando el documento oficial para tu trámite ante el IMPI. 
         Esto puede tomar unos segundos.
       </p>
-      <div className="w-64 h-2 bg-slate-200 rounded-full mt-8 overflow-hidden">
+      <div className="w-64 h-2 bg-muted rounded-full mt-8 overflow-hidden">
         <motion.div 
           className="h-full bg-secondary"
           initial={{ width: "0%" }}
@@ -405,7 +405,7 @@ export default function Solicitud() {
           </CardHeader>
           <CardContent className="space-y-4">
             {!iframeError ? (
-              <div className="border rounded-lg overflow-hidden bg-white" style={{ minHeight: '500px' }}>
+              <div className="border rounded-lg overflow-hidden bg-card" style={{ minHeight: '500px' }}>
                 <iframe
                   src={documentoUrl}
                   className="w-full border-0"
@@ -416,9 +416,9 @@ export default function Solicitud() {
                 />
               </div>
             ) : (
-              <div className="border-2 border-dashed border-slate-300 rounded-lg p-8 text-center bg-slate-50">
-                <FileText className="w-16 h-16 text-slate-400 mx-auto mb-4" />
-                <p className="text-slate-600 mb-4">
+              <div className="border-2 border-dashed border-border rounded-lg p-8 text-center bg-muted/30">
+                <FileText className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
+                <p className="text-muted-foreground mb-4">
                   La vista previa no está disponible. Usa el botón para ver el documento.
                 </p>
                 <Button
@@ -433,7 +433,7 @@ export default function Solicitud() {
               </div>
             )}
 
-            <div className="flex items-center gap-2 p-3 bg-slate-50 rounded-lg border">
+            <div className="flex items-center gap-2 p-3 bg-muted/30 rounded-lg border">
               <FileText className="w-4 h-4 text-muted-foreground shrink-0" />
               <code className="text-xs text-muted-foreground flex-1 truncate" data-testid="text-documento-url">
                 {documentoUrl}
@@ -584,7 +584,7 @@ export default function Solicitud() {
           <div 
             key={step}
             className={`h-2 flex-1 rounded-full ${
-              step <= 4 ? 'bg-primary' : 'bg-slate-200'
+              step <= 4 ? 'bg-primary' : 'bg-muted'
             }`}
           />
         ))}

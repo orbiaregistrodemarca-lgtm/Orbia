@@ -86,7 +86,7 @@ export default function Classify() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 py-12 px-4">
+    <div className="min-h-screen bg-background py-12 px-4">
       <div className="container max-w-3xl mx-auto">
         
         <AnimatePresence mode="wait">
@@ -99,8 +99,8 @@ export default function Classify() {
               className="flex flex-col items-center justify-center py-20 text-center"
             >
               <OrbiaMascot state="thinking" size="lg" className="mb-8" />
-              <h2 className="text-2xl font-bold text-primary mb-4 flex items-center gap-2">
-                <Loader2 className="animate-spin" />
+              <h2 className="text-2xl font-bold text-white mb-4 flex items-center gap-2">
+                <Loader2 className="animate-spin text-primary" />
                 Analizando tu marca...
               </h2>
               <div className="h-16 flex items-center justify-center w-full max-w-md px-4">
@@ -114,9 +114,9 @@ export default function Classify() {
                    "{tips[loadingTip]}"
                  </motion.p>
               </div>
-              <div className="w-64 h-2 bg-slate-200 rounded-full mt-8 overflow-hidden">
+              <div className="w-64 h-2 bg-muted rounded-full mt-8 overflow-hidden">
                 <motion.div 
-                  className="h-full bg-secondary"
+                  className="h-full bg-primary"
                   initial={{ width: "0%" }}
                   animate={{ width: "100%" }}
                   transition={{ duration: 15, ease: "linear" }}
@@ -133,12 +133,12 @@ export default function Classify() {
               <div className="flex items-center justify-center mb-8">
                 <OrbiaMascot state="idle" size="sm" className="mr-4" />
                 <div className="text-center md:text-left">
-                  <h1 className="text-3xl font-display font-bold text-primary">Clasifica tu Marca</h1>
+                  <h1 className="text-3xl font-display font-bold text-white">Clasifica tu Marca</h1>
                   <p className="text-muted-foreground">Descubre si tu marca es viable y cómo protegerla.</p>
                 </div>
               </div>
 
-              <Card className="shadow-xl border-t-4 border-t-secondary">
+              <Card className="shadow-xl border-t-4 border-t-primary">
                 <CardHeader>
                   <CardTitle>Información de la Marca</CardTitle>
                   <CardDescription>
@@ -211,7 +211,7 @@ export default function Classify() {
                       <Button 
                         type="submit" 
                         size="lg" 
-                        className="w-full text-lg py-6 bg-primary hover:bg-primary/90 shadow-lg hover:translate-y-[-2px] transition-all"
+                        className="w-full text-lg py-6 bg-primary hover:bg-primary/90 text-background font-semibold shadow-lg shadow-primary/25 hover:translate-y-[-2px] transition-all"
                         data-testid="button-submit"
                         disabled={isLoading}
                       >

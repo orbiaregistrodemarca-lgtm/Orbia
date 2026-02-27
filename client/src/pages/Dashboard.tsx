@@ -24,18 +24,18 @@ interface Estudio {
 }
 
 const estadoConfig: Record<string, { label: string; color: string }> = {
-  solicitud_generada: { label: 'Solicitud generada', color: 'bg-emerald-100 text-emerald-800 border-emerald-300' },
-  busqueda_completada: { label: 'Busqueda completada', color: 'bg-blue-100 text-blue-800 border-blue-300' },
-  en_proceso: { label: 'En proceso', color: 'bg-amber-100 text-amber-800 border-amber-300' },
-  clasificado: { label: 'Clasificado', color: 'bg-sky-100 text-sky-800 border-sky-300' },
+  solicitud_generada: { label: 'Solicitud generada', color: 'bg-emerald-900/30 text-emerald-300 border-emerald-700' },
+  busqueda_completada: { label: 'Busqueda completada', color: 'bg-primary/10 text-primary border-primary/30' },
+  en_proceso: { label: 'En proceso', color: 'bg-amber-900/30 text-amber-300 border-amber-700' },
+  clasificado: { label: 'Clasificado', color: 'bg-sky-900/30 text-sky-300 border-sky-700' },
 };
 
 const riesgoConfig: Record<string, { color: string }> = {
-  ALTO: { color: 'bg-red-100 text-red-800 border-red-300' },
-  MEDIO: { color: 'bg-amber-100 text-amber-800 border-amber-300' },
-  MEDIA: { color: 'bg-amber-100 text-amber-800 border-amber-300' },
-  BAJO: { color: 'bg-emerald-100 text-emerald-800 border-emerald-300' },
-  NINGUNO: { color: 'bg-emerald-100 text-emerald-800 border-emerald-300' },
+  ALTO: { color: 'bg-red-900/30 text-red-300 border-red-700' },
+  MEDIO: { color: 'bg-amber-900/30 text-amber-300 border-amber-700' },
+  MEDIA: { color: 'bg-amber-900/30 text-amber-300 border-amber-700' },
+  BAJO: { color: 'bg-emerald-900/30 text-emerald-300 border-emerald-700' },
+  NINGUNO: { color: 'bg-emerald-900/30 text-emerald-300 border-emerald-700' },
 };
 
 function formatDate(dateStr: string) {
@@ -92,7 +92,7 @@ export default function Dashboard() {
     if (config) {
       return <Badge variant="outline" className={config.color} data-testid="badge-estado">{config.label}</Badge>;
     }
-    return <Badge variant="outline" className="bg-slate-100 text-slate-600 border-slate-300" data-testid="badge-estado">{estado || 'Sin estado'}</Badge>;
+    return <Badge variant="outline" className="bg-muted/50 text-muted-foreground border-border" data-testid="badge-estado">{estado || 'Sin estado'}</Badge>;
   };
 
   const getRiesgoBadge = (nivel: string | null) => {
@@ -103,7 +103,7 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+    <div className="min-h-screen bg-background">
       <div className="max-w-5xl mx-auto px-4 py-8">
         <motion.div
           initial={{ opacity: 0, y: -10 }}
@@ -112,18 +112,18 @@ export default function Dashboard() {
         >
           <div className="flex items-center gap-3">
             <FolderOpen className="w-7 h-7 text-primary" />
-            <h1 className="text-2xl md:text-3xl font-display font-bold text-slate-900" data-testid="text-dashboard-title">
+            <h1 className="text-2xl md:text-3xl font-display font-bold text-white" data-testid="text-dashboard-title">
               Mis tramites
             </h1>
             {role === 'superadmin' && (
-              <Badge className="bg-purple-100 text-purple-800 border-purple-300 ml-2" data-testid="badge-admin">
+              <Badge className="bg-purple-900/30 text-purple-300 border-purple-700 ml-2" data-testid="badge-admin">
                 <ShieldCheck className="w-3 h-3 mr-1" />
                 Admin
               </Badge>
             )}
           </div>
           <Link href="/clasificar">
-            <Button className="shadow-lg" data-testid="button-nueva-marca">
+            <Button className="shadow-lg shadow-primary/25 bg-primary text-background hover:bg-primary/90 font-semibold" data-testid="button-nueva-marca">
               <Plus className="w-4 h-4 mr-2" />
               Nueva marca
             </Button>
@@ -136,19 +136,19 @@ export default function Dashboard() {
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: 0.1 }}
           >
-            <Card className="border-dashed border-2 border-slate-300">
+            <Card className="border-dashed border-2 border-border">
               <CardContent className="py-16 text-center">
                 <div className="flex justify-center mb-6">
                   <OrbiaMascot state="idle" size="md" />
                 </div>
-                <h2 className="text-xl font-semibold text-slate-700 mb-2" data-testid="text-empty-state">
+                <h2 className="text-xl font-semibold text-white mb-2" data-testid="text-empty-state">
                   Aun no tienes tramites
                 </h2>
                 <p className="text-muted-foreground mb-6 max-w-md mx-auto">
                   Comienza registrando tu primera marca. Te guiaremos paso a paso en todo el proceso.
                 </p>
                 <Link href="/clasificar">
-                  <Button size="lg" className="px-8 py-6 text-lg shadow-lg" data-testid="button-primera-marca">
+                  <Button size="lg" className="px-8 py-6 text-lg shadow-lg shadow-primary/25 bg-primary text-background hover:bg-primary/90 font-semibold" data-testid="button-primera-marca">
                     <Sparkles className="w-5 h-5 mr-2" />
                     Registrar mi primera marca
                   </Button>
@@ -165,17 +165,17 @@ export default function Dashboard() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.05 }}
               >
-                <Card className="hover:shadow-md transition-shadow border-slate-200" data-testid={`card-estudio-${estudio.id}`}>
+                <Card className="hover:shadow-md hover:border-primary/30 transition-all" data-testid={`card-estudio-${estudio.id}`}>
                   <CardContent className="p-5">
                     <div className="flex items-start justify-between gap-3 mb-3">
-                      <h3 className="text-lg font-bold text-slate-900 leading-tight" data-testid={`text-marca-${estudio.id}`}>
+                      <h3 className="text-lg font-bold text-white leading-tight" data-testid={`text-marca-${estudio.id}`}>
                         {estudio.nombre_marca}
                       </h3>
                       {getEstadoBadge(estudio.estado)}
                     </div>
 
                     {estudio.clase_niza && (
-                      <p className="text-sm text-slate-600 mb-2" data-testid={`text-clase-${estudio.id}`}>
+                      <p className="text-sm text-muted-foreground mb-2" data-testid={`text-clase-${estudio.id}`}>
                         Clase {estudio.clase_niza} — {estudio.nombre_clase || 'Sin nombre'}
                       </p>
                     )}
@@ -188,12 +188,12 @@ export default function Dashboard() {
                     </div>
 
                     {role === 'superadmin' && estudio.user_id && (
-                      <p className="text-xs text-purple-600 mb-3 font-medium" data-testid={`text-usuario-${estudio.id}`}>
+                      <p className="text-xs text-purple-400 mb-3 font-medium" data-testid={`text-usuario-${estudio.id}`}>
                         Usuario: {estudio.user_id.slice(0, 8)}...
                       </p>
                     )}
 
-                    <div className="flex items-center gap-2 pt-2 border-t border-slate-100">
+                    <div className="flex items-center gap-2 pt-2 border-t border-border">
                       {estudio.documento_generado_url && (
                         <a
                           href={estudio.documento_generado_url}

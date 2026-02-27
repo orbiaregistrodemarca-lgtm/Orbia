@@ -340,7 +340,7 @@ export default function Logo() {
       case 'BAJO': return 'bg-emerald-100 text-emerald-800 border-emerald-300';
       case 'MEDIO': return 'bg-amber-100 text-amber-800 border-amber-300';
       case 'ALTO': return 'bg-rose-100 text-rose-800 border-rose-300';
-      default: return 'bg-slate-100 text-slate-800 border-slate-300';
+      default: return 'bg-muted/50 text-muted-foreground border-border';
     }
   };
 
@@ -350,14 +350,14 @@ export default function Logo() {
       case 'MEDIA': return 'bg-amber-100 text-amber-800 border-amber-300';
       case 'BAJA': return 'bg-orange-100 text-orange-800 border-orange-300';
       case 'NULA': return 'bg-rose-100 text-rose-800 border-rose-300';
-      default: return 'bg-slate-100 text-slate-800 border-slate-300';
+      default: return 'bg-muted/50 text-muted-foreground border-border';
     }
   };
 
   const hasAlternatives = result && (result.logo_alternativa_1_url || result.logo_alternativa_2_url);
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white dark:from-slate-950 dark:to-slate-900 py-8 px-4">
+    <div className="min-h-screen bg-gradient-to-b from-background to-card py-8 px-4">
       <div className="container max-w-4xl mx-auto">
         
         {/* HEADER */}
@@ -415,7 +415,7 @@ export default function Logo() {
                         data-testid="option-upload"
                       >
                         <CardContent className="p-8 text-center">
-                          <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-blue-50 flex items-center justify-center">
+                          <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-primary/10 flex items-center justify-center">
                             <Upload className="w-10 h-10 text-secondary" />
                           </div>
                           <h3 className="text-xl font-bold text-primary mb-2">
@@ -492,7 +492,7 @@ export default function Logo() {
                         border-2 border-dashed rounded-xl p-12 text-center transition-all cursor-pointer
                         ${isDragging 
                           ? 'border-secondary bg-secondary/5' 
-                          : 'border-slate-300 hover:border-secondary hover:bg-slate-50'
+                          : 'border-border hover:border-primary hover:bg-muted/30'
                         }
                       `}
                       onClick={() => document.getElementById('file-input')?.click()}
@@ -505,7 +505,7 @@ export default function Logo() {
                         onChange={handleFileInput}
                         className="hidden"
                       />
-                      <Upload className={`w-12 h-12 mx-auto mb-4 ${isDragging ? 'text-secondary' : 'text-slate-400'}`} />
+                      <Upload className={`w-12 h-12 mx-auto mb-4 ${isDragging ? 'text-secondary' : 'text-muted-foreground'}`} />
                       <p className="text-lg font-medium text-primary mb-2">
                         Arrastra tu logo aquí
                       </p>
@@ -521,7 +521,7 @@ export default function Logo() {
                     </div>
                   ) : (
                     <div className="relative">
-                      <div className="bg-slate-100 rounded-xl p-8 flex items-center justify-center min-h-[300px]">
+                      <div className="bg-muted/50 rounded-xl p-8 flex items-center justify-center min-h-[300px]">
                         <img 
                           src={previewUrl} 
                           alt="Preview del logo" 
@@ -591,7 +591,7 @@ export default function Logo() {
                   "{tips[loadingTip]}"
                 </motion.p>
               </div>
-              <div className="w-64 h-2 bg-slate-200 rounded-full mt-8 overflow-hidden">
+              <div className="w-64 h-2 bg-muted rounded-full mt-8 overflow-hidden">
                 <motion.div 
                   className="h-full bg-secondary"
                   initial={{ width: "0%" }}
@@ -618,8 +618,8 @@ export default function Logo() {
                 animate={{ opacity: 1, scale: 1 }}
                 className={`rounded-2xl border-3 p-6 shadow-lg ${
                   result.logo_es_registrable 
-                    ? 'bg-gradient-to-br from-emerald-50 to-green-50 border-emerald-400' 
-                    : 'bg-gradient-to-br from-rose-50 to-red-50 border-rose-400'
+                    ? 'bg-emerald-900/20 border-emerald-600' 
+                    : 'bg-rose-900/20 border-rose-600'
                 }`}
               >
                 <div className="flex items-start gap-4">
@@ -749,7 +749,7 @@ export default function Logo() {
                         </CardTitle>
                       </CardHeader>
                       <CardContent>
-                        <p className="text-slate-700">{result.logo_colores}</p>
+                        <p className="text-white/80">{result.logo_colores}</p>
                       </CardContent>
                     </Card>
                   </motion.div>
@@ -766,7 +766,7 @@ export default function Logo() {
                         </CardTitle>
                       </CardHeader>
                       <CardContent>
-                        <p className="text-slate-700">{result.logo_elementos}</p>
+                        <p className="text-white/80">{result.logo_elementos}</p>
                       </CardContent>
                     </Card>
                   </motion.div>
@@ -784,7 +784,7 @@ export default function Logo() {
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <p className="text-slate-700 leading-relaxed">{result.logo_descripcion}</p>
+                      <p className="text-white/80 leading-relaxed">{result.logo_descripcion}</p>
                     </CardContent>
                   </Card>
                 </motion.div>
@@ -793,15 +793,15 @@ export default function Logo() {
               {/* Elementos Detectados */}
               {result.logo_elementos_detectados && (
                 <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35 }}>
-                  <Card className="border-blue-200 bg-blue-50/50">
+                  <Card className="border-primary/30 bg-primary/5">
                     <CardHeader>
-                      <CardTitle className="flex items-center gap-2 text-blue-800">
+                      <CardTitle className="flex items-center gap-2 text-primary">
                         <Eye className="w-5 h-5" />
                         Elementos Detectados en el Análisis
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <p className="text-blue-700">{result.logo_elementos_detectados}</p>
+                      <p className="text-primary/80">{result.logo_elementos_detectados}</p>
                     </CardContent>
                   </Card>
                 </motion.div>
@@ -844,7 +844,7 @@ export default function Logo() {
               {/* Justificación Legal */}
               {result.logo_justificacion && (
                 <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }}>
-                  <Card className="border-slate-200">
+                  <Card className="border-border">
                     <CardHeader>
                       <CardTitle className="flex items-center gap-2 text-primary">
                         <Scale className="w-5 h-5" />
@@ -852,7 +852,7 @@ export default function Logo() {
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <p className="text-slate-700 leading-relaxed">{result.logo_justificacion}</p>
+                      <p className="text-white/80 leading-relaxed">{result.logo_justificacion}</p>
                     </CardContent>
                   </Card>
                 </motion.div>
@@ -861,7 +861,7 @@ export default function Logo() {
               {/* Sugerencias y Recomendación */}
               {(result.logo_sugerencias || result.logo_recomendacion) && (
                 <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.55 }}>
-                  <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200">
+                  <Card className="bg-gradient-to-br from-secondary/20 to-primary/10 border-primary/30">
                     <CardHeader>
                       <CardTitle className="flex items-center gap-2 text-primary">
                         <Lightbulb className="w-5 h-5 text-amber-500" />
@@ -870,11 +870,11 @@ export default function Logo() {
                     </CardHeader>
                     <CardContent className="space-y-4">
                       {result.logo_recomendacion && (
-                        <p className="text-slate-700 leading-relaxed">{result.logo_recomendacion}</p>
+                        <p className="text-white/80 leading-relaxed">{result.logo_recomendacion}</p>
                       )}
                       {result.logo_sugerencias && (
-                        <div className="bg-white/60 rounded-lg p-4 border border-blue-100">
-                          <p className="text-sm font-medium text-blue-800 flex items-start gap-2">
+                        <div className="bg-card/60 rounded-lg p-4 border border-primary/20">
+                          <p className="text-sm font-medium text-primary flex items-start gap-2">
                             <Sparkles className="w-4 h-4 mt-0.5 shrink-0" />
                             <span>{result.logo_sugerencias}</span>
                           </p>
@@ -919,7 +919,7 @@ export default function Logo() {
                               </div>
                             )}
                             <CardContent className="p-6">
-                              <div className="bg-slate-100 rounded-lg p-6 mb-4 flex items-center justify-center min-h-[200px]">
+                              <div className="bg-muted/50 rounded-lg p-6 mb-4 flex items-center justify-center min-h-[200px]">
                                 <img 
                                   src={result.logo_alternativa_1_url} 
                                   alt="Opción 1" 
@@ -975,7 +975,7 @@ export default function Logo() {
                               </div>
                             )}
                             <CardContent className="p-6">
-                              <div className="bg-slate-100 rounded-lg p-6 mb-4 flex items-center justify-center min-h-[200px]">
+                              <div className="bg-muted/50 rounded-lg p-6 mb-4 flex items-center justify-center min-h-[200px]">
                                 <img 
                                   src={result.logo_alternativa_2_url} 
                                   alt="Opción 2" 

@@ -203,39 +203,39 @@ export default function BusquedaIMPI() {
       case 'NINGUNO':
       case 'BAJO':
         return {
-          bg: 'bg-emerald-50 border-emerald-300',
-          text: 'text-emerald-900',
-          subtext: 'text-emerald-700',
-          icon: <ShieldCheck className="w-7 h-7 text-emerald-600" />,
+          bg: 'bg-emerald-900/20 border-emerald-700',
+          text: 'text-emerald-300',
+          subtext: 'text-emerald-400',
+          icon: <ShieldCheck className="w-7 h-7 text-emerald-500" />,
           title: 'Puedes registrar esta marca',
-          badgeBg: 'bg-emerald-100 text-emerald-800 border-emerald-300',
+          badgeBg: 'bg-emerald-900/30 text-emerald-300 border-emerald-700',
         };
       case 'MEDIO':
         return {
-          bg: 'bg-amber-50 border-amber-300',
-          text: 'text-amber-900',
-          subtext: 'text-amber-700',
-          icon: <ShieldAlert className="w-7 h-7 text-amber-600" />,
+          bg: 'bg-amber-900/20 border-amber-700',
+          text: 'text-amber-300',
+          subtext: 'text-amber-400',
+          icon: <ShieldAlert className="w-7 h-7 text-amber-500" />,
           title: 'Procede con precaucion',
-          badgeBg: 'bg-amber-100 text-amber-800 border-amber-300',
+          badgeBg: 'bg-amber-900/30 text-amber-300 border-amber-700',
         };
       case 'ALTO':
         return {
-          bg: 'bg-red-50 border-red-300',
-          text: 'text-red-900',
-          subtext: 'text-red-700',
-          icon: <ShieldX className="w-7 h-7 text-red-600" />,
+          bg: 'bg-red-900/20 border-red-700',
+          text: 'text-red-300',
+          subtext: 'text-red-400',
+          icon: <ShieldX className="w-7 h-7 text-red-500" />,
           title: 'Conflicto detectado',
-          badgeBg: 'bg-red-100 text-red-800 border-red-300',
+          badgeBg: 'bg-red-900/30 text-red-300 border-red-700',
         };
       default:
         return {
-          bg: 'bg-slate-50 border-slate-300',
-          text: 'text-slate-900',
-          subtext: 'text-slate-700',
-          icon: <Shield className="w-7 h-7 text-slate-600" />,
+          bg: 'bg-muted/50 border-border',
+          text: 'text-white',
+          subtext: 'text-muted-foreground',
+          icon: <Shield className="w-7 h-7 text-muted-foreground" />,
           title: 'Resultado de busqueda',
-          badgeBg: 'bg-slate-100 text-slate-800 border-slate-300',
+          badgeBg: 'bg-muted/50 text-muted-foreground border-border',
         };
     }
   };
@@ -253,7 +253,7 @@ export default function BusquedaIMPI() {
       <Card>
         <CardContent className="pt-8 pb-8 text-center">
           <Loader2 className="w-12 h-12 text-primary mx-auto mb-4 animate-spin" />
-          <h2 className="text-xl font-bold text-slate-800 mb-2">
+          <h2 className="text-xl font-bold text-white mb-2">
             Buscando en el registro IMPI
           </h2>
           <p className="text-muted-foreground mb-4">
@@ -282,13 +282,13 @@ export default function BusquedaIMPI() {
         <OrbiaMascot state="worried" size="lg" />
       </div>
 
-      <Card className="border-red-200 bg-red-50">
+      <Card className="border-red-700 bg-red-900/20">
         <CardContent className="pt-8 pb-8 text-center">
-          <AlertCircle className="w-16 h-16 text-red-600 mx-auto mb-4" />
-          <h2 className="text-xl font-bold text-red-800 mb-2">
+          <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
+          <h2 className="text-xl font-bold text-red-300 mb-2">
             Error en la busqueda
           </h2>
-          <p className="text-red-700 mb-6">{error}</p>
+          <p className="text-red-400 mb-6">{error}</p>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button onClick={handleRetry} data-testid="button-retry">
@@ -307,13 +307,13 @@ export default function BusquedaIMPI() {
   const renderMarca = (marca: MarcaEncontrada, index: number, isConflict: boolean = false) => (
     <div 
       key={index}
-      className={`border rounded-xl p-4 transition-all ${isConflict ? 'bg-red-50/80 border-red-200 shadow-sm' : 'bg-white border-slate-200 hover:border-slate-300'}`}
+      className={`border rounded-xl p-4 transition-all ${isConflict ? 'bg-red-900/10 border-red-700/50 shadow-sm' : 'bg-card border-border hover:border-primary/30'}`}
       data-testid={`marca-encontrada-${index}`}
     >
       <div className="flex justify-between items-start gap-4">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1">
-            <p className="font-semibold text-slate-800 text-base">{marca.denominacion || 'Sin nombre'}</p>
+            <p className="font-semibold text-white text-base">{marca.denominacion || 'Sin nombre'}</p>
             {isConflict && (
               <Badge variant="destructive" className="text-[10px] px-1.5 py-0 h-5 shrink-0" data-testid={`badge-tu-clase-${index}`}>
                 Tu clase
@@ -330,19 +330,19 @@ export default function BusquedaIMPI() {
               </p>
             )}
             {marca.clases_en_conflicto && marca.clases_en_conflicto.length > 0 && (
-              <p className="text-sm font-semibold text-red-600 mt-1">
+              <p className="text-sm font-semibold text-red-400 mt-1">
                 Conflicto en clase {marca.clases_en_conflicto.join(', ')}
               </p>
             )}
           </div>
           <div className="flex items-center gap-3 mt-2 flex-wrap">
             {marca.similitud != null && (
-              <span className="text-xs bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full">
+              <span className="text-xs bg-muted text-muted-foreground px-2 py-0.5 rounded-full">
                 Similitud: {marca.similitud}%
               </span>
             )}
             {marca.fecha_vencimiento && (
-              <span className="text-xs bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full">
+              <span className="text-xs bg-muted text-muted-foreground px-2 py-0.5 rounded-full">
                 Vence: {marca.fecha_vencimiento}
               </span>
             )}
@@ -360,7 +360,7 @@ export default function BusquedaIMPI() {
               href={marca.link_impi} 
               target="_blank" 
               rel="noopener noreferrer" 
-              className="inline-flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800 hover:underline font-medium"
+              className="inline-flex items-center gap-1 text-xs text-primary hover:text-primary/80 hover:underline font-medium"
               data-testid={`link-expediente-${index}`}
             >
               Ver expediente <ExternalLink className="w-3 h-3" />
@@ -432,15 +432,15 @@ export default function BusquedaIMPI() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-slate-700 text-sm leading-relaxed">{analisis.detalle}</p>
+              <p className="text-muted-foreground text-sm leading-relaxed">{analisis.detalle}</p>
             </CardContent>
           </Card>
         )}
 
         {marcasConflicto.length > 0 && (
-          <Card className="border-red-200 overflow-hidden">
-            <CardHeader className="bg-red-50/50 pb-3">
-              <CardTitle className="flex items-center gap-2 text-lg text-red-800">
+          <Card className="border-red-700/50 overflow-hidden">
+            <CardHeader className="bg-red-900/10 pb-3">
+              <CardTitle className="flex items-center gap-2 text-lg text-red-300">
                 <AlertTriangle className="w-5 h-5" />
                 Conflictos en TUS clases
                 <Badge variant="destructive" className="ml-auto">{marcasConflicto.length}</Badge>
@@ -462,8 +462,8 @@ export default function BusquedaIMPI() {
               onClick={() => setShowOtrasMarcas(!showOtrasMarcas)}
               data-testid="button-toggle-otras-marcas"
             >
-              <CardHeader className="pb-3 hover:bg-slate-50/80 transition-colors">
-                <CardTitle className="flex items-center gap-2 text-base text-slate-600 font-medium">
+              <CardHeader className="pb-3 hover:bg-muted/30 transition-colors">
+                <CardTitle className="flex items-center gap-2 text-base text-muted-foreground font-medium">
                   {showOtrasMarcas ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
                   {showOtrasMarcas ? 'Ocultar' : '+'} Ver otras marcas similares ({marcasOtras.length})
                   <span className="text-xs text-muted-foreground ml-1 font-normal">
@@ -509,17 +509,17 @@ export default function BusquedaIMPI() {
         )}
 
         {analisis.recomendaciones && analisis.recomendaciones.length > 0 && (
-          <Card className="border-blue-200 bg-blue-50/50">
+          <Card className="border-primary/30 bg-primary/5">
             <CardHeader className="pb-3">
-              <CardTitle className="flex items-center gap-2 text-lg text-blue-800">
+              <CardTitle className="flex items-center gap-2 text-lg text-primary">
                 💡 Recomendaciones
               </CardTitle>
             </CardHeader>
             <CardContent>
               <ul className="space-y-2">
                 {analisis.recomendaciones.map((rec, index) => (
-                  <li key={index} className="flex items-start gap-2 text-blue-700 text-sm">
-                    <span className="mt-1 w-1.5 h-1.5 rounded-full bg-blue-400 shrink-0" />
+                  <li key={index} className="flex items-start gap-2 text-primary/80 text-sm">
+                    <span className="mt-1 w-1.5 h-1.5 rounded-full bg-primary/60 shrink-0" />
                     {rec}
                   </li>
                 ))}
@@ -578,7 +578,7 @@ export default function BusquedaIMPI() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 py-8 px-4">
+    <div className="min-h-screen bg-background py-8 px-4">
       <div className="max-w-2xl mx-auto">
         <motion.div
           initial={{ opacity: 0, y: -20 }}
@@ -588,7 +588,7 @@ export default function BusquedaIMPI() {
           <Badge variant="outline" className="mb-4 px-4 py-1.5 text-sm font-medium border-primary/30 bg-primary/5">
             Paso 1.5 de 4
           </Badge>
-          <h1 className="text-3xl font-bold text-slate-900 mb-2">
+          <h1 className="text-3xl font-bold text-white mb-2">
             Verificacion IMPI
           </h1>
           <p className="text-muted-foreground">
