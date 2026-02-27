@@ -6,8 +6,18 @@ ORBIA is a web platform for trademark registration in Mexico with IMPI (Mexican 
 
 The application follows a multi-module workflow:
 - **Module 1**: Brand classification using Nice Classification system
+- **Module 1.5**: IMPI trademark search
 - **Module 2**: Logo analysis and generation
 - **Module 3**: Trademark holder data collection
+- **Module 4**: Document (PDF) generation
+
+### Authentication
+- **Supabase Auth**: Email/password login and registration
+- **Pages**: `/login` (sign in) and `/registro` (sign up)
+- **Route Guards**: All flow pages (`/clasificar`, `/resultados`, `/busqueda-impi`, `/logo`, `/titular`, `/solicitud`) are protected with `ProtectedRoute` component
+- **Session**: Managed by Supabase Auth client-side; config fetched from `/api/auth/config` endpoint
+- **Header**: Shows user email and logout button when authenticated
+- **CRITICAL**: `SUPABASE_URL` and `SUPABASE_ANON_KEY` env vars are swapped in Replit. The `getSupabaseKey()` helper detects which starts with 'eyJ' (JWT). Hardcoded Supabase URL: `https://zxlzcbohvjqlwmojejee.supabase.co`
 
 ## User Preferences
 

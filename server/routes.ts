@@ -135,6 +135,13 @@ export async function registerRoutes(
     return key;
   };
 
+  app.get('/api/auth/config', (_req, res) => {
+    res.json({
+      supabaseUrl: SUPABASE_URL,
+      supabaseAnonKey: getSupabaseKey(),
+    });
+  });
+
   app.post('/api/estudios/:estudioId/upload-logo', async (req, res) => {
     try {
       const { estudioId } = req.params;
