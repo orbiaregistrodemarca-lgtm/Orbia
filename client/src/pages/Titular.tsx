@@ -269,7 +269,7 @@ export default function Titular() {
 
   if (isSuccess) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 py-8 px-4">
+      <div className="min-h-screen bg-background py-8 px-4">
         <div className="max-w-2xl mx-auto">
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
@@ -316,7 +316,7 @@ export default function Titular() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 py-8 px-4">
+    <div className="min-h-screen bg-background py-8 px-4">
       <div className="max-w-3xl mx-auto">
         <motion.div
           initial={{ opacity: 0, y: -20 }}
@@ -326,7 +326,7 @@ export default function Titular() {
           <Badge variant="outline" className="mb-4 px-4 py-1.5 text-sm font-medium border-primary/30 bg-primary/5">
             Paso 3 de 4
           </Badge>
-          <h1 className="text-3xl font-bold text-slate-900 mb-2">
+          <h1 className="text-3xl font-bold text-white mb-2">
             Datos del Titular
           </h1>
           <p className="text-muted-foreground">
@@ -355,11 +355,11 @@ export default function Titular() {
                 className={`p-6 rounded-xl border-2 text-left transition-all ${
                   tipoPersona === 'persona_fisica'
                     ? 'border-primary bg-primary/5'
-                    : 'border-slate-200 hover:border-slate-300'
+                    : 'border-border hover:border-primary/30'
                 }`}
               >
                 <User className={`w-8 h-8 mb-3 ${
-                  tipoPersona === 'persona_fisica' ? 'text-primary' : 'text-slate-400'
+                  tipoPersona === 'persona_fisica' ? 'text-primary' : 'text-muted-foreground'
                 }`} />
                 <h3 className="font-semibold mb-1">Persona Física</h3>
                 <p className="text-sm text-muted-foreground">
@@ -375,11 +375,11 @@ export default function Titular() {
                 className={`p-6 rounded-xl border-2 text-left transition-all ${
                   tipoPersona === 'persona_moral'
                     ? 'border-primary bg-primary/5'
-                    : 'border-slate-200 hover:border-slate-300'
+                    : 'border-border hover:border-primary/30'
                 }`}
               >
                 <Building2 className={`w-8 h-8 mb-3 ${
-                  tipoPersona === 'persona_moral' ? 'text-primary' : 'text-slate-400'
+                  tipoPersona === 'persona_moral' ? 'text-primary' : 'text-muted-foreground'
                 }`} />
                 <h3 className="font-semibold mb-1">Persona Moral</h3>
                 <p className="text-sm text-muted-foreground">
@@ -498,7 +498,7 @@ export default function Titular() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="flex items-center space-x-3 p-4 bg-slate-50 rounded-lg border">
+                <div className="flex items-center space-x-3 p-4 bg-muted/30 rounded-lg border">
                   <Checkbox
                     id="noSeHaUsado"
                     checked={noSeHaUsado}

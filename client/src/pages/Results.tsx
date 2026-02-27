@@ -37,7 +37,7 @@ function ClassCard({ tipo, numero, nombre, descripcion, onCopy, index = 0 }: Cla
           <div className="flex items-center justify-between">
             <Badge 
               variant={tipo === 'principal' ? 'default' : 'secondary'}
-              className={tipo === 'principal' ? 'bg-secondary' : 'bg-amber-100 text-amber-800'}
+              className={tipo === 'principal' ? 'bg-primary text-background' : 'bg-amber-900/30 text-amber-300 border-amber-700'}
             >
               {tipo === 'principal' ? 'CLASE PRINCIPAL' : `CLASE ADICIONAL ${index + 1}`}
             </Badge>
@@ -56,8 +56,8 @@ function ClassCard({ tipo, numero, nombre, descripcion, onCopy, index = 0 }: Cla
               </Button>
             </CollapsibleTrigger>
             <CollapsibleContent className="mt-3 space-y-3">
-              <div className="bg-slate-50 dark:bg-slate-900 p-4 rounded-lg border max-h-48 overflow-y-auto">
-                <p className="text-sm text-slate-600 dark:text-slate-400 whitespace-pre-wrap">
+              <div className="bg-muted/50 p-4 rounded-lg border border-border max-h-48 overflow-y-auto">
+                <p className="text-sm text-muted-foreground whitespace-pre-wrap">
                   {formatLegalDescription(descripcion)}
                 </p>
               </div>
@@ -113,7 +113,7 @@ export default function Results() {
 
   if (!result) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+      <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center">
           <OrbiaMascot state="thinking" size="lg" className="mx-auto mb-4" />
           <p className="text-muted-foreground">Cargando resultados...</p>
@@ -144,32 +144,32 @@ export default function Results() {
     switch (level) {
       case 'ALTA': 
         return {
-          bg: 'bg-emerald-50 border-emerald-200 dark:bg-emerald-900/20',
-          text: 'text-emerald-800 dark:text-emerald-300',
+          bg: 'bg-emerald-900/20 border-emerald-700',
+          text: 'text-emerald-300',
           icon: <CheckCircle className="w-10 h-10 text-emerald-600" />,
           title: '¡Tu marca es registrable!',
           mascotState: 'happy' as const
         };
       case 'MEDIA': 
         return {
-          bg: 'bg-amber-50 border-amber-200 dark:bg-amber-900/20',
-          text: 'text-amber-800 dark:text-amber-300',
+          bg: 'bg-amber-900/20 border-amber-700',
+          text: 'text-amber-300',
           icon: <AlertTriangle className="w-10 h-10 text-amber-600" />,
           title: 'Tu marca tiene algunos riesgos',
           mascotState: 'idle' as const
         };
       case 'BAJA': 
         return {
-          bg: 'bg-rose-50 border-rose-200 dark:bg-rose-900/20',
-          text: 'text-rose-800 dark:text-rose-300',
+          bg: 'bg-rose-900/20 border-rose-700',
+          text: 'text-rose-300',
           icon: <XCircle className="w-10 h-10 text-rose-600" />,
           title: 'Tu marca tiene problemas para registrarse',
           mascotState: 'worried' as const
         };
       default:
         return {
-          bg: 'bg-slate-50 border-slate-200',
-          text: 'text-slate-800',
+          bg: 'bg-muted/50 border-border',
+          text: 'text-muted-foreground',
           icon: null,
           title: 'Resultado',
           mascotState: 'idle' as const
@@ -192,7 +192,7 @@ export default function Results() {
   const totalClases = result.total_clases || (1 + secondaryClasses.length);
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white dark:from-slate-950 dark:to-slate-900 py-8 px-4">
+    <div className="min-h-screen bg-gradient-to-b from-background to-card py-8 px-4">
       <div className="container max-w-4xl mx-auto">
         
         {/* HEADER */}
@@ -275,12 +275,12 @@ export default function Results() {
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.15 }}
-              className="bg-blue-50 border border-blue-200 rounded-xl p-4 flex items-start gap-3"
+              className="bg-primary/10 border border-primary/30 rounded-xl p-4 flex items-start gap-3"
             >
-              <Search className="w-5 h-5 text-blue-600 shrink-0 mt-0.5" />
+              <Search className="w-5 h-5 text-primary shrink-0 mt-0.5" />
               <div>
-                <p className="font-semibold text-blue-800 text-sm">Verificación IMPI Recomendada</p>
-                <p className="text-blue-700 text-sm">
+                <p className="font-semibold text-primary text-sm">Verificación IMPI Recomendada</p>
+                <p className="text-primary/70 text-sm">
                   Se recomienda verificar la disponibilidad de este nombre en la base de datos del IMPI antes de proceder.
                 </p>
               </div>
@@ -293,13 +293,13 @@ export default function Results() {
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.2 }}
-              className="bg-red-50 border-2 border-red-200 rounded-xl p-5 flex items-start gap-4"
+              className="bg-red-900/20 border-2 border-red-700 rounded-xl p-5 flex items-start gap-4"
               data-testid="alert-nombre-famoso"
             >
               <AlertTriangle className="w-6 h-6 text-red-600 shrink-0 mt-0.5" />
               <div>
-                <p className="font-bold text-red-800 mb-1">Alerta: Nombre Famoso Detectado</p>
-                <p className="text-sm text-red-700">
+                <p className="font-bold text-red-300 mb-1">Alerta: Nombre Famoso Detectado</p>
+                <p className="text-sm text-red-400">
                   Este nombre está asociado a una persona famosa, lo cual viola el Artículo 173 de la Ley Federal de Protección a la Propiedad Industrial (LFPPI).
                 </p>
               </div>
@@ -381,7 +381,7 @@ export default function Results() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.4 }}
             >
-              <Card className="shadow-lg bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200">
+              <Card className="shadow-lg bg-gradient-to-br from-secondary/20 to-primary/10 border-primary/30">
                 <CardHeader>
                   <CardTitle className="text-primary flex items-center gap-2">
                     <Lightbulb className="w-5 h-5 text-amber-500" />
@@ -389,11 +389,11 @@ export default function Results() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <p className="text-slate-700 leading-relaxed">
+                  <p className="text-white/80 leading-relaxed">
                     {result.recomendacion_experta}
                   </p>
                   {result.siguiente_paso && (
-                    <div className="bg-white/60 rounded-lg p-4 border border-blue-100">
+                    <div className="bg-card/60 rounded-lg p-4 border border-primary/20">
                       <p className="text-sm font-medium text-primary flex items-start gap-2">
                         <ArrowRight className="w-4 h-4 mt-0.5 shrink-0" />
                         <span>{result.siguiente_paso}</span>
@@ -422,7 +422,7 @@ export default function Results() {
                   <Badge 
                     key={i} 
                     variant="secondary" 
-                    className="px-3 py-1.5 text-sm bg-blue-50 text-blue-700 hover:bg-blue-100"
+                    className="px-3 py-1.5 text-sm bg-primary/10 text-primary hover:bg-primary/20"
                     data-testid={`badge-keyword-${i}`}
                   >
                     {keyword}
@@ -439,7 +439,7 @@ export default function Results() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.5 }}
             >
-              <Card className="border-secondary/30 bg-gradient-to-br from-emerald-50 to-teal-50">
+              <Card className="border-emerald-700/30 bg-gradient-to-br from-emerald-900/20 to-teal-900/20">
                 <CardHeader>
                   <CardTitle className="text-primary flex items-center gap-2">
                     <Lightbulb className="w-5 h-5 text-emerald-600" />
@@ -455,7 +455,7 @@ export default function Results() {
                       <Button 
                         key={i} 
                         variant="outline" 
-                        className="bg-white hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-300 shadow-sm"
+                        className="bg-card hover:bg-emerald-900/20 hover:text-emerald-300 hover:border-emerald-700 shadow-sm"
                         onClick={() => handleSuggestionClick(name)}
                         data-testid={`button-sugerencia-${i}`}
                       >
