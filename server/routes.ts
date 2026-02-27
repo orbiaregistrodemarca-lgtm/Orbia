@@ -6,6 +6,52 @@ import { z } from "zod";
 import { getSupabase } from "./supabase";
 
 const WEBHOOK_URL = 'https://orbia.app.n8n.cloud/webhook/clasificar-marca';
+const SUPABASE_URL = 'https://zxlzcbohvjqlwmojejee.supabase.co';
+
+const getSupabaseKey = () => {
+  const url = (process.env.SUPABASE_URL || '').trim();
+  const key = (process.env.SUPABASE_ANON_KEY || '').trim();
+  if (url.startsWith('eyJ')) return url;
+  return key;
+};
+
+const getServiceRoleKey = () => {
+  const key = (process.env.SUPABASE_SERVICE_ROLE_KEY || '').trim();
+  if (!key) {
+    console.warn('SUPABASE_SERVICE_ROLE_KEY not set, falling back to anon key');
+    return getSupabaseKey();
+  }
+  return key;
+};
+
+const supabaseAdminFetch = async (path: string, options: RequestInit = {}) => {
+  const serviceKey = getServiceRoleKey();
+  return fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
+    ...options,
+    headers: {
+      'apikey': serviceKey,
+      'Authorization': `Bearer ${serviceKey}`,
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+  });
+};
+
+const getUserIdFromToken = async (token: string): Promise<string | null> => {
+  try {
+    const userRes = await fetch(`${SUPABASE_URL}/auth/v1/user`, {
+      headers: {
+        'apikey': getSupabaseKey(),
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+    if (!userRes.ok) return null;
+    const userData = await userRes.json();
+    return userData.id || null;
+  } catch {
+    return null;
+  }
+};
 
 export async function registerRoutes(
   httpServer: Server,
@@ -126,15 +172,6 @@ export async function registerRoutes(
     }
   });
 
-  const SUPABASE_URL = 'https://zxlzcbohvjqlwmojejee.supabase.co';
-
-  const getSupabaseKey = () => {
-    const url = (process.env.SUPABASE_URL || '').trim();
-    const key = (process.env.SUPABASE_ANON_KEY || '').trim();
-    if (url.startsWith('eyJ')) return url;
-    return key;
-  };
-
   app.get('/api/auth/config', (_req, res) => {
     res.json({
       supabaseUrl: SUPABASE_URL,
@@ -142,18 +179,51 @@ export async function registerRoutes(
     });
   });
 
-  const supabaseFetch = async (path: string, token: string, options: RequestInit = {}) => {
-    const apiKey = getSupabaseKey();
-    return fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
-      ...options,
-      headers: {
-        'apikey': apiKey,
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
-        ...options.headers,
-      },
-    });
-  };
+  app.post('/api/estudios/:estudioId/assign-user', async (req, res) => {
+    try {
+      const { estudioId } = req.params;
+      const authHeader = req.headers.authorization;
+      if (!authHeader) return res.status(401).json({ message: 'No autorizado' });
+      
+      const token = authHeader.replace('Bearer ', '');
+      const userId = await getUserIdFromToken(token);
+      if (!userId) return res.status(401).json({ message: 'Token invalido' });
+
+      const checkRes = await supabaseAdminFetch(
+        `estudios_marca?id=eq.${estudioId}&select=id,user_id`
+      );
+      if (!checkRes.ok) {
+        return res.status(500).json({ message: 'Error verificando estudio' });
+      }
+      const estudios = await checkRes.json();
+      if (estudios.length === 0) {
+        return res.status(404).json({ message: 'Estudio no encontrado' });
+      }
+      if (estudios[0].user_id !== null) {
+        return res.json({ success: true, userId: estudios[0].user_id });
+      }
+
+      const patchRes = await supabaseAdminFetch(
+        `estudios_marca?id=eq.${estudioId}&user_id=is.null`,
+        {
+          method: 'PATCH',
+          body: JSON.stringify({ user_id: userId }),
+          headers: { 'Prefer': 'return=minimal' },
+        }
+      );
+
+      if (!patchRes.ok) {
+        const errText = await patchRes.text();
+        console.error('Error assigning user to estudio:', errText);
+        return res.status(500).json({ message: 'Error asignando usuario' });
+      }
+
+      res.json({ success: true, userId });
+    } catch (error) {
+      console.error('Error en POST /api/estudios/:id/assign-user:', error);
+      res.status(500).json({ message: 'Error interno' });
+    }
+  });
 
   app.get('/api/dashboard/profile', async (req, res) => {
     try {
@@ -161,17 +231,10 @@ export async function registerRoutes(
       if (!authHeader) return res.status(401).json({ message: 'No autorizado' });
       const token = authHeader.replace('Bearer ', '');
 
-      const userRes = await fetch(`${SUPABASE_URL}/auth/v1/user`, {
-        headers: {
-          'apikey': getSupabaseKey(),
-          'Authorization': `Bearer ${token}`,
-        },
-      });
-      if (!userRes.ok) return res.status(401).json({ message: 'Token invalido' });
-      const userData = await userRes.json();
-      const userId = userData.id;
+      const userId = await getUserIdFromToken(token);
+      if (!userId) return res.status(401).json({ message: 'Token invalido' });
 
-      const profileRes = await supabaseFetch(`profiles?id=eq.${userId}&select=role`, token);
+      const profileRes = await supabaseAdminFetch(`profiles?id=eq.${userId}&select=role`);
       let role = 'user';
       if (profileRes.ok) {
         const profiles = await profileRes.json();
@@ -193,18 +256,11 @@ export async function registerRoutes(
       if (!authHeader) return res.status(401).json({ message: 'No autorizado' });
       const token = authHeader.replace('Bearer ', '');
 
-      const userRes = await fetch(`${SUPABASE_URL}/auth/v1/user`, {
-        headers: {
-          'apikey': getSupabaseKey(),
-          'Authorization': `Bearer ${token}`,
-        },
-      });
-      if (!userRes.ok) return res.status(401).json({ message: 'Token invalido' });
-      const userData = await userRes.json();
-      const userId = userData.id;
+      const userId = await getUserIdFromToken(token);
+      if (!userId) return res.status(401).json({ message: 'Token invalido' });
 
       let isSuperadmin = false;
-      const profileRes = await supabaseFetch(`profiles?id=eq.${userId}&select=role`, token);
+      const profileRes = await supabaseAdminFetch(`profiles?id=eq.${userId}&select=role`);
       if (profileRes.ok) {
         const profiles = await profileRes.json();
         if (profiles.length > 0 && profiles[0].role === 'superadmin') {
@@ -217,7 +273,7 @@ export async function registerRoutes(
         path += `&user_id=eq.${userId}`;
       }
 
-      const estudiosRes = await supabaseFetch(path, token);
+      const estudiosRes = await supabaseAdminFetch(path);
       if (!estudiosRes.ok) {
         const errText = await estudiosRes.text();
         console.error('Error fetching estudios:', errText);
@@ -252,15 +308,15 @@ export async function registerRoutes(
       const safeName = (nombre_marca || 'logo').replace(/[^a-zA-Z0-9_-]/g, '_');
       const fileName = `${safeName}_usuario_${estudioId}.${ext}`;
 
-      const apiKey = getSupabaseKey();
+      const serviceKey = getServiceRoleKey();
 
       const uploadResponse = await fetch(
         `${SUPABASE_URL}/storage/v1/object/logos/${fileName}`,
         {
           method: 'POST',
           headers: {
-            'apikey': apiKey,
-            'Authorization': `Bearer ${apiKey}`,
+            'apikey': serviceKey,
+            'Authorization': `Bearer ${serviceKey}`,
             'Content-Type': `image/${matches[1]}`,
             'x-upsert': 'true',
           },
@@ -276,21 +332,16 @@ export async function registerRoutes(
 
       const publicUrl = `${SUPABASE_URL}/storage/v1/object/public/logos/${fileName}`;
 
-      const patchResponse = await fetch(
-        `${SUPABASE_URL}/rest/v1/estudios_marca?id=eq.${estudioId}`,
+      const patchResponse = await supabaseAdminFetch(
+        `estudios_marca?id=eq.${estudioId}`,
         {
           method: 'PATCH',
-          headers: {
-            'apikey': apiKey,
-            'Authorization': `Bearer ${apiKey}`,
-            'Content-Type': 'application/json',
-            'Prefer': 'return=minimal',
-          },
           body: JSON.stringify({
             logo_seleccionado: publicUrl,
             logo_url: publicUrl,
             logo_origen: 'usuario_subido',
           }),
+          headers: { 'Prefer': 'return=minimal' },
         }
       );
 
@@ -300,7 +351,7 @@ export async function registerRoutes(
         return res.status(500).json({ message: 'Error guardando referencia', error: errText });
       }
 
-      console.log('✅ Logo subido y guardado:', publicUrl);
+      console.log('Logo subido y guardado:', publicUrl);
       res.json({ success: true, logo_url: publicUrl });
     } catch (error) {
       console.error('Error en POST /api/estudios/:id/upload-logo:', error);
@@ -317,23 +368,16 @@ export async function registerRoutes(
         return res.status(400).json({ message: 'Faltan datos requeridos' });
       }
 
-      const apiKey = getSupabaseKey();
-
-      const patchResponse = await fetch(
-        `${SUPABASE_URL}/rest/v1/estudios_marca?id=eq.${estudioId}`,
+      const patchResponse = await supabaseAdminFetch(
+        `estudios_marca?id=eq.${estudioId}`,
         {
           method: 'PATCH',
-          headers: {
-            'apikey': apiKey,
-            'Authorization': `Bearer ${apiKey}`,
-            'Content-Type': 'application/json',
-            'Prefer': 'return=minimal',
-          },
           body: JSON.stringify({
             logo_seleccionado,
             logo_url: logo_seleccionado,
             logo_origen,
           }),
+          headers: { 'Prefer': 'return=minimal' },
         }
       );
 

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useLocation } from 'wouter';
-import { ClassificationResult, formatLegalDescription } from '@/lib/api';
+import { ClassificationResult, formatLegalDescription, assignUserToEstudio } from '@/lib/api';
+import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -83,6 +84,7 @@ export default function Results() {
   const [brandName, setBrandName] = useState('');
   const [, setLocation] = useLocation();
   const { toast } = useToast();
+  const { session } = useAuth();
 
   useEffect(() => {
     console.log('🔍 Results: Buscando datos en localStorage...');
@@ -104,6 +106,10 @@ export default function Results() {
       if (storedInput) {
         const input = JSON.parse(storedInput);
         setBrandName(input.nombre_marca);
+      }
+      
+      if (session?.access_token && parsed.id) {
+        assignUserToEstudio(parsed.id, session.access_token);
       }
     } catch (e) {
       console.error('❌ Error parseando resultado:', e);
