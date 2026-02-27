@@ -2,8 +2,7 @@ import { Link, useLocation } from 'wouter';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 import { LogOut } from 'lucide-react';
-
-const ORBIA_MASCOT_URL = 'https://res.cloudinary.com/dz964kisp/image/upload/v1764954057/orbia_mascot_sz8nnb.png';
+import { MASCOT_URL } from '@/components/mascot/OrbiaMascot';
 
 export function Header() {
   const [location, navigate] = useLocation();
@@ -19,7 +18,7 @@ export function Header() {
       <div className="container mx-auto px-4 h-16 flex items-center justify-between">
         <Link href="/" className="flex items-center gap-2 font-display font-bold text-2xl text-primary hover:opacity-90 transition-opacity">
           <div className="w-9 h-9 rounded-full bg-gradient-to-br from-secondary to-accent flex items-center justify-center overflow-hidden">
-            <img src={ORBIA_MASCOT_URL} alt="ORBIA" className="w-8 h-8 object-contain" />
+            <img src={MASCOT_URL} alt="ORBIA" className="w-8 h-8 object-contain" />
           </div>
           ORBIA
         </Link>

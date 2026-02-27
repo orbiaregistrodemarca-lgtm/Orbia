@@ -7,8 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { AlertCircle, Loader2 } from 'lucide-react';
 import { motion } from 'framer-motion';
-
-const ORBIA_MASCOT_URL = 'https://res.cloudinary.com/dz964kisp/image/upload/v1764954057/orbia_mascot_sz8nnb.png';
+import { MASCOT_URL } from '@/components/mascot/OrbiaMascot';
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -48,7 +47,7 @@ export default function Login() {
         <Card className="shadow-xl border-0">
           <CardHeader className="text-center space-y-2">
             <div className="mx-auto w-16 h-16 rounded-full bg-gradient-to-br from-secondary to-accent flex items-center justify-center overflow-hidden mb-2">
-              <img src={ORBIA_MASCOT_URL} alt="ORBIA" className="w-14 h-14 object-contain" />
+              <img src={MASCOT_URL} alt="ORBIA" className="w-14 h-14 object-contain" />
             </div>
             <CardTitle className="text-2xl font-display" data-testid="text-login-title">Iniciar Sesion</CardTitle>
             <CardDescription>Ingresa a tu cuenta de ORBIA</CardDescription>
