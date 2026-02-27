@@ -33,7 +33,7 @@ export default function Login() {
         setError(authError);
       }
     } else {
-      navigate('/');
+      navigate('/dashboard');
     }
   };
 

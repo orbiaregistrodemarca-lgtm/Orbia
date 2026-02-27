@@ -12,6 +12,7 @@ import BusquedaIMPI from "@/pages/BusquedaIMPI";
 import Logo from "@/pages/Logo";
 import Titular from "@/pages/Titular";
 import Solicitud from "@/pages/Solicitud";
+import Dashboard from "@/pages/Dashboard";
 import NotFound from "@/pages/not-found";
 import { Toaster } from "@/components/ui/toaster";
 import { queryClient } from "./lib/queryClient";
@@ -30,6 +31,9 @@ function App() {
                 <Route path="/" component={Home} />
                 <Route path="/login" component={Login} />
                 <Route path="/registro" component={Registro} />
+                <Route path="/dashboard">
+                  {() => <ProtectedRoute component={Dashboard} />}
+                </Route>
                 <Route path="/clasificar">
                   {() => <ProtectedRoute component={Classify} />}
                 </Route>
