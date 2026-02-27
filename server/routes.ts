@@ -142,6 +142,96 @@ export async function registerRoutes(
     });
   });
 
+  const supabaseFetch = async (path: string, token: string, options: RequestInit = {}) => {
+    const apiKey = getSupabaseKey();
+    return fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
+      ...options,
+      headers: {
+        'apikey': apiKey,
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+        ...options.headers,
+      },
+    });
+  };
+
+  app.get('/api/dashboard/profile', async (req, res) => {
+    try {
+      const authHeader = req.headers.authorization;
+      if (!authHeader) return res.status(401).json({ message: 'No autorizado' });
+      const token = authHeader.replace('Bearer ', '');
+
+      const userRes = await fetch(`${SUPABASE_URL}/auth/v1/user`, {
+        headers: {
+          'apikey': getSupabaseKey(),
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+      if (!userRes.ok) return res.status(401).json({ message: 'Token invalido' });
+      const userData = await userRes.json();
+      const userId = userData.id;
+
+      const profileRes = await supabaseFetch(`profiles?id=eq.${userId}&select=role`, token);
+      let role = 'user';
+      if (profileRes.ok) {
+        const profiles = await profileRes.json();
+        if (profiles.length > 0 && profiles[0].role) {
+          role = profiles[0].role;
+        }
+      }
+
+      res.json({ userId, role });
+    } catch (error) {
+      console.error('Error en /api/dashboard/profile:', error);
+      res.status(500).json({ message: 'Error interno' });
+    }
+  });
+
+  app.get('/api/dashboard/estudios', async (req, res) => {
+    try {
+      const authHeader = req.headers.authorization;
+      if (!authHeader) return res.status(401).json({ message: 'No autorizado' });
+      const token = authHeader.replace('Bearer ', '');
+
+      const userRes = await fetch(`${SUPABASE_URL}/auth/v1/user`, {
+        headers: {
+          'apikey': getSupabaseKey(),
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+      if (!userRes.ok) return res.status(401).json({ message: 'Token invalido' });
+      const userData = await userRes.json();
+      const userId = userData.id;
+
+      let isSuperadmin = false;
+      const profileRes = await supabaseFetch(`profiles?id=eq.${userId}&select=role`, token);
+      if (profileRes.ok) {
+        const profiles = await profileRes.json();
+        if (profiles.length > 0 && profiles[0].role === 'superadmin') {
+          isSuperadmin = true;
+        }
+      }
+
+      let path = 'estudios_marca?select=id,created_at,nombre_marca,estado,clase_niza,nombre_clase,nivel_viabilidad,documento_generado_url,user_id&order=created_at.desc';
+      if (!isSuperadmin) {
+        path += `&user_id=eq.${userId}`;
+      }
+
+      const estudiosRes = await supabaseFetch(path, token);
+      if (!estudiosRes.ok) {
+        const errText = await estudiosRes.text();
+        console.error('Error fetching estudios:', errText);
+        return res.status(500).json({ message: 'Error al obtener estudios' });
+      }
+
+      const estudios = await estudiosRes.json();
+      res.json(estudios);
+    } catch (error) {
+      console.error('Error en /api/dashboard/estudios:', error);
+      res.status(500).json({ message: 'Error interno' });
+    }
+  });
+
   app.post('/api/estudios/:estudioId/upload-logo', async (req, res) => {
     try {
       const { estudioId } = req.params;

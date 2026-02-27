@@ -14,9 +14,12 @@ The application follows a multi-module workflow:
 ### Authentication
 - **Supabase Auth**: Email/password login and registration
 - **Pages**: `/login` (sign in) and `/registro` (sign up)
-- **Route Guards**: All flow pages (`/clasificar`, `/resultados`, `/busqueda-impi`, `/logo`, `/titular`, `/solicitud`) are protected with `ProtectedRoute` component
+- **Route Guards**: All flow pages (`/clasificar`, `/resultados`, `/busqueda-impi`, `/logo`, `/titular`, `/solicitud`, `/dashboard`) are protected with `ProtectedRoute` component
 - **Session**: Managed by Supabase Auth client-side; config fetched from `/api/auth/config` endpoint
 - **Header**: Shows user email and logout button when authenticated
+- **Dashboard** (`/dashboard`): Shows user's estudios_marca as cards; superadmin (role in `profiles` table) sees all studies with extra 'Usuario' column
+- **API Endpoints**: `/api/dashboard/profile` (get user role), `/api/dashboard/estudios` (get filtered studies)
+- **Login redirect**: After login, user is sent to `/dashboard`
 - **CRITICAL**: `SUPABASE_URL` and `SUPABASE_ANON_KEY` env vars are swapped in Replit. The `getSupabaseKey()` helper detects which starts with 'eyJ' (JWT). Hardcoded Supabase URL: `https://zxlzcbohvjqlwmojejee.supabase.co`
 
 ## User Preferences
