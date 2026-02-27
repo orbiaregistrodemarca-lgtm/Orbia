@@ -9,7 +9,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { OrbiaMascot } from '@/components/mascot/OrbiaMascot';
-import { classifyBrand } from '@/lib/api';
+import { classifyBrand, assignUserToEstudio } from '@/lib/api';
+import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Loader2 } from 'lucide-react';
@@ -26,6 +27,7 @@ export default function Classify() {
   const [isLoading, setIsLoading] = useState(false);
   const [, setLocation] = useLocation();
   const { toast } = useToast();
+  const { session } = useAuth();
   const [loadingTip, setLoadingTip] = useState(0);
 
   const tips = [
@@ -70,6 +72,10 @@ export default function Classify() {
       localStorage.setItem('orbia_last_result', JSON.stringify(result));
       localStorage.setItem('orbia_last_input', JSON.stringify(data));
       console.log('💾 Guardado en localStorage');
+      
+      if (session?.access_token && result.id) {
+        assignUserToEstudio(result.id, session.access_token);
+      }
       
       console.log('🔄 Redirigiendo a /resultados...');
       setLocation('/resultados');

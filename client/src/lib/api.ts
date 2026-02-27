@@ -226,6 +226,23 @@ export function imageToBase64(file: File): Promise<string> {
   });
 }
 
+export async function assignUserToEstudio(estudioId: string, accessToken: string): Promise<void> {
+  try {
+    const response = await fetch(`/api/estudios/${estudioId}/assign-user`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${accessToken}`,
+      },
+    });
+    if (!response.ok) {
+      console.error('Error assigning user to estudio:', response.status);
+    }
+  } catch (error) {
+    console.error('Error assigning user:', error);
+  }
+}
+
 export function formatLegalDescription(text: string): string {
   if (!text) return '';
   return text
