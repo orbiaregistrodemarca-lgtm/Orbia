@@ -1,12 +1,13 @@
 import { motion, Variants } from 'framer-motion';
-
-const ORBIA_MASCOT_URL = 'https://res.cloudinary.com/dz964kisp/image/upload/v1764954057/orbia_mascot_sz8nnb.png';
+import mascotImg from '@assets/mascota_orbia_1772224666030.png';
 
 interface OrbiaMascotProps {
   className?: string;
   state?: 'idle' | 'thinking' | 'happy' | 'worried';
   size?: 'sm' | 'md' | 'lg';
 }
+
+export const MASCOT_URL = mascotImg;
 
 export function OrbiaMascot({ className = '', state = 'idle', size = 'md' }: OrbiaMascotProps) {
   const sizeClasses = {
@@ -58,7 +59,7 @@ export function OrbiaMascot({ className = '', state = 'idle', size = 'md' }: Orb
       animate={state}
     >
       <img 
-        src={ORBIA_MASCOT_URL} 
+        src={mascotImg} 
         alt="ORBIA Mascota" 
         className="w-full h-full object-contain relative z-10 drop-shadow-2xl"
       />
