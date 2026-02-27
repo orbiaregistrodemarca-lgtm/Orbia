@@ -8,6 +8,8 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { AlertCircle, CheckCircle, Loader2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 
+const ORBIA_MASCOT_URL = 'https://res.cloudinary.com/dz964kisp/image/upload/v1764954057/orbia_mascot_sz8nnb.png';
+
 export default function Registro() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -83,8 +85,8 @@ export default function Registro() {
       >
         <Card className="shadow-xl border-0">
           <CardHeader className="text-center space-y-2">
-            <div className="mx-auto w-12 h-12 rounded-full bg-gradient-to-br from-secondary to-accent flex items-center justify-center text-white text-lg font-bold mb-2">
-              O
+            <div className="mx-auto w-16 h-16 rounded-full bg-gradient-to-br from-secondary to-accent flex items-center justify-center overflow-hidden mb-2">
+              <img src={ORBIA_MASCOT_URL} alt="ORBIA" className="w-14 h-14 object-contain" />
             </div>
             <CardTitle className="text-2xl font-display" data-testid="text-registro-title">Crear Cuenta</CardTitle>
             <CardDescription>Registrate en ORBIA para proteger tu marca</CardDescription>
