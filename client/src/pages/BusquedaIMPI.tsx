@@ -9,7 +9,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Search, ArrowRight, ArrowLeft, Loader2, CheckCircle, 
   AlertTriangle, AlertCircle, FileText, RefreshCw, XCircle,
-  ChevronDown, ChevronUp, ExternalLink, Shield, ShieldAlert, ShieldCheck, ShieldX
+  ChevronDown, ChevronUp, ExternalLink, Shield, ShieldAlert, ShieldCheck, ShieldX,
+  Clock, Construction
 } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 
@@ -58,6 +59,8 @@ interface BusquedaResponse {
 
 type PageState = 'loading' | 'success' | 'error';
 
+const COMING_SOON = true;
+
 export default function BusquedaIMPI() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
@@ -73,6 +76,8 @@ export default function BusquedaIMPI() {
   const [claseNiza, setClaseNiza] = useState<number>(0);
 
   useEffect(() => {
+    if (COMING_SOON) return;
+
     const storedResult = localStorage.getItem('orbia_last_result');
     
     if (!storedResult) {
@@ -576,6 +581,85 @@ export default function BusquedaIMPI() {
       </motion.div>
     );
   };
+
+  if (COMING_SOON) {
+    return (
+      <div className="min-h-screen bg-background py-8 px-4">
+        <div className="max-w-2xl mx-auto">
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-center mb-8"
+          >
+            <Badge variant="outline" className="mb-4 px-4 py-1.5 text-sm font-medium border-primary/30 bg-primary/5">
+              Paso 1.5 de 4
+            </Badge>
+            <h1 className="text-3xl font-bold text-white mb-2">
+              Verificación IMPI
+            </h1>
+            <p className="text-muted-foreground">
+              Búsqueda en el registro oficial del IMPI
+            </p>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.15 }}
+          >
+            <Card className="border-primary/20">
+              <CardContent className="pt-10 pb-10 text-center">
+                <div className="mx-auto mb-6 w-20 h-20 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center">
+                  <Construction className="w-10 h-10 text-primary" />
+                </div>
+
+                <h2 className="text-2xl font-bold text-white mb-3" data-testid="text-coming-soon-title">
+                  Verificación IMPI — Próximamente
+                </h2>
+
+                <p className="text-muted-foreground max-w-md mx-auto mb-8 leading-relaxed" data-testid="text-coming-soon-description">
+                  Estamos integrando la búsqueda en tiempo real con la base de datos del IMPI. 
+                  Esta función estará disponible muy pronto.
+                </p>
+
+                <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground mb-8">
+                  <Clock className="w-4 h-4 text-primary/60" />
+                  <span>Mientras tanto, puedes continuar con tu registro</span>
+                </div>
+
+                <Button
+                  size="lg"
+                  className="px-8 py-6 text-lg"
+                  onClick={() => setLocation('/logo')}
+                  data-testid="button-continue-registro"
+                >
+                  Continuar con mi registro
+                  <ArrowRight className="w-5 h-5 ml-2" />
+                </Button>
+              </CardContent>
+            </Card>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.3 }}
+            className="mt-6 text-center"
+          >
+            <Button
+              variant="ghost"
+              onClick={() => setLocation('/resultados')}
+              className="text-muted-foreground"
+              data-testid="button-back-results"
+            >
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Volver a resultados
+            </Button>
+          </motion.div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background py-8 px-4">
