@@ -13,6 +13,7 @@ import Logo from "@/pages/Logo";
 import Titular from "@/pages/Titular";
 import Solicitud from "@/pages/Solicitud";
 import Dashboard from "@/pages/Dashboard";
+import EstudioDetalle from "@/pages/EstudioDetalle";
 import NotFound from "@/pages/not-found";
 import { Toaster } from "@/components/ui/toaster";
 import { queryClient } from "./lib/queryClient";
@@ -33,6 +34,9 @@ function App() {
                 <Route path="/registro" component={Registro} />
                 <Route path="/dashboard">
                   {() => <ProtectedRoute component={Dashboard} />}
+                </Route>
+                <Route path="/tramite/:id">
+                  {(params) => <ProtectedRoute component={() => <EstudioDetalle id={params.id} />} />}
                 </Route>
                 <Route path="/clasificar">
                   {() => <ProtectedRoute component={Classify} />}

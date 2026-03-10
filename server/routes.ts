@@ -288,6 +288,48 @@ export async function registerRoutes(
     }
   });
 
+  app.get('/api/dashboard/estudios/:estudioId', async (req, res) => {
+    try {
+      const authHeader = req.headers.authorization;
+      if (!authHeader) return res.status(401).json({ message: 'No autorizado' });
+      const token = authHeader.replace('Bearer ', '');
+
+      const userId = await getUserIdFromToken(token);
+      if (!userId) return res.status(401).json({ message: 'Token invalido' });
+
+      const { estudioId } = req.params;
+
+      let isSuperadmin = false;
+      const profileRes = await supabaseAdminFetch(`profiles?id=eq.${userId}&select=role`);
+      if (profileRes.ok) {
+        const profiles = await profileRes.json();
+        if (profiles.length > 0 && profiles[0].role === 'superadmin') {
+          isSuperadmin = true;
+        }
+      }
+
+      let path = `estudios_marca?id=eq.${estudioId}&select=*`;
+      if (!isSuperadmin) {
+        path += `&user_id=eq.${userId}`;
+      }
+
+      const estudioRes = await supabaseAdminFetch(path);
+      if (!estudioRes.ok) {
+        return res.status(500).json({ message: 'Error al obtener estudio' });
+      }
+
+      const estudios = await estudioRes.json();
+      if (estudios.length === 0) {
+        return res.status(404).json({ message: 'Estudio no encontrado' });
+      }
+
+      res.json(estudios[0]);
+    } catch (error) {
+      console.error('Error en /api/dashboard/estudios/:id:', error);
+      res.status(500).json({ message: 'Error interno' });
+    }
+  });
+
   app.post('/api/estudios/:estudioId/upload-logo', async (req, res) => {
     try {
       const { estudioId } = req.params;

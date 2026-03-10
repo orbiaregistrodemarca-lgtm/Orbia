@@ -17,8 +17,9 @@ The application follows a multi-module workflow:
 - **Route Guards**: All flow pages (`/clasificar`, `/resultados`, `/busqueda-impi`, `/logo`, `/titular`, `/solicitud`, `/dashboard`) are protected with `ProtectedRoute` component
 - **Session**: Managed by Supabase Auth client-side; config fetched from `/api/auth/config` endpoint
 - **Header**: Shows user email and logout button when authenticated
-- **Dashboard** (`/dashboard`): Shows user's estudios_marca as cards; superadmin (role in `profiles` table) sees all studies with extra 'Usuario' column
-- **API Endpoints**: `/api/dashboard/profile` (get user role), `/api/dashboard/estudios` (get filtered studies)
+- **Dashboard** (`/dashboard`): Shows analytics stats (total marcas, solicitudes listas, en proceso, viabilidad favorable), Niza classes summary, and study cards; superadmin sees all studies with 'Usuario' column
+- **Study Detail** (`/tramite/:id`): Full detail view of a study with classification, viability analysis, logo, titular data, legal justification, and PDF preview via iframe
+- **API Endpoints**: `/api/dashboard/profile` (get user role), `/api/dashboard/estudios` (get filtered studies), `/api/dashboard/estudios/:id` (get single study detail)
 - **Login redirect**: After login, user is sent to `/dashboard`
 - **CRITICAL**: `SUPABASE_URL` and `SUPABASE_ANON_KEY` env vars are swapped in Replit. The `getSupabaseKey()` helper detects which starts with 'eyJ' (JWT). Hardcoded Supabase URL: `https://zxlzcbohvjqlwmojejee.supabase.co`
 
