@@ -1,19 +1,13 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
-import { API_BASE } from '@/lib/config';
 
 let supabaseInstance: SupabaseClient | null = null;
-let initPromise: Promise<SupabaseClient> | null = null;
 
-export async function getSupabaseClient(): Promise<SupabaseClient> {
+export function getSupabaseClient(): SupabaseClient {
   if (supabaseInstance) return supabaseInstance;
-  if (initPromise) return initPromise;
 
-  initPromise = fetch(`${API_BASE}/api/auth/config`)
-    .then((res) => res.json())
-    .then(({ supabaseUrl, supabaseAnonKey }) => {
-      supabaseInstance = createClient(supabaseUrl, supabaseAnonKey);
-      return supabaseInstance;
-    });
+  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+  const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-  return initPromise;
+  supabaseInstance = createClient(supabaseUrl, supabaseAnonKey);
+  return supabaseInstance;
 }
