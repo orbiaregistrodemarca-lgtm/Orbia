@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { API_BASE } from '@/lib/config';
 import { useLocation } from 'wouter';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -202,7 +203,7 @@ export default function Logo() {
     try {
       if (!estudioId) return null;
 
-      const response = await fetch(`/api/estudios/${estudioId}/upload-logo`, {
+      const response = await fetch(`${API_BASE}/api/estudios/${estudioId}/upload-logo`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -229,7 +230,7 @@ export default function Logo() {
     try {
       if (!estudioId) return;
 
-      const response = await fetch(`/api/estudios/${estudioId}/logo`, {
+      const response = await fetch(`${API_BASE}/api/estudios/${estudioId}/logo`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

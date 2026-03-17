@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { API_BASE } from '@/lib/config';
 import { Link, useLocation } from 'wouter';
 import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent } from '@/components/ui/card';
@@ -57,14 +58,14 @@ export default function Dashboard() {
     const token = session.access_token;
 
     Promise.all([
-      fetch('/api/dashboard/profile', {
+      fetch(`${API_BASE}/api/dashboard/profile`, {
         headers: { 'Authorization': `Bearer ${token}` },
       }).then(r => r.json()).catch(() => ({ role: 'user' })),
     ]).then(([profileData]) => {
       const userRole = profileData.role || 'user';
       setRole(userRole);
 
-      return fetch('/api/dashboard/estudios', {
+      return fetch(`${API_BASE}/api/dashboard/estudios`, {
         headers: { 'Authorization': `Bearer ${token}` },
       });
     })

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { API_BASE } from '@/lib/config';
 import { useLocation, Link } from 'wouter';
 import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -77,7 +78,7 @@ export default function EstudioDetalle({ id }: { id: string }) {
   useEffect(() => {
     if (!session?.access_token || !id) return;
 
-    fetch(`/api/dashboard/estudios/${id}`, {
+    fetch(`${API_BASE}/api/dashboard/estudios/${id}`, {
       headers: { 'Authorization': `Bearer ${session.access_token}` },
     })
       .then(r => {

@@ -1,3 +1,5 @@
+import { API_BASE } from '@/lib/config';
+
 const WEBHOOK_URL = 'https://n8n.srv1175451.hstgr.cloud/webhook/clasificar-marca';
 const LOGO_WEBHOOK_URL = 'https://n8n.srv1175451.hstgr.cloud/webhook/analizar-logo-v2';
 
@@ -228,7 +230,7 @@ export function imageToBase64(file: File): Promise<string> {
 
 export async function assignUserToEstudio(estudioId: string, accessToken: string): Promise<void> {
   try {
-    const response = await fetch(`/api/estudios/${estudioId}/assign-user`, {
+    const response = await fetch(`${API_BASE}/api/estudios/${estudioId}/assign-user`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

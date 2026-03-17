@@ -1,4 +1,5 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
+import { API_BASE } from '@/lib/config';
 
 let supabaseInstance: SupabaseClient | null = null;
 let initPromise: Promise<SupabaseClient> | null = null;
@@ -7,7 +8,7 @@ export async function getSupabaseClient(): Promise<SupabaseClient> {
   if (supabaseInstance) return supabaseInstance;
   if (initPromise) return initPromise;
 
-  initPromise = fetch('/api/auth/config')
+  initPromise = fetch(`${API_BASE}/api/auth/config`)
     .then((res) => res.json())
     .then(({ supabaseUrl, supabaseAnonKey }) => {
       supabaseInstance = createClient(supabaseUrl, supabaseAnonKey);
