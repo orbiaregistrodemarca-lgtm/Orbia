@@ -6,7 +6,7 @@ import { z } from "zod";
 import { getSupabase } from "./supabase";
 
 const WEBHOOK_URL = 'https://orbia.app.n8n.cloud/webhook/clasificar-marca';
-const SUPABASE_URL = 'https://zxlzcbohvjqlwmojejee.supabase.co';
+const SUPABASE_URL = (process.env.SUPABASE_URL || '').trim();
 
 const getSupabaseKey = () => {
   const url = (process.env.SUPABASE_URL || '').trim();
