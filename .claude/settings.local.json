@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(grep -r process.env. /c/Users/Mariana/Orbia --include=*.ts --include=*.tsx --include=*.js --exclude-dir=node_modules)"
+    ]
+  }
+}
