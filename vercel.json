@@ -1,13 +1,4 @@
 {
   "outputDirectory": "dist/public",
-  "rewrites": [
-    {
-      "source": "/api/:path*",
-      "destination": "http://72.60.228.116:5000/api/:path*"
-    },
-    {
-      "source": "/(.*)",
-      "destination": "/index.html"
-    }
-  ]
+  "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
 }

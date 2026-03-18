@@ -1,10 +1,19 @@
-import { createClient } from '@supabase/supabase-js';
+import { createClient, SupabaseClient } from '@supabase/supabase-js';
+import { API_BASE } from '@/lib/config';
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+let supabaseInstance: SupabaseClient | null = null;
+let initPromise: Promise<SupabaseClient> | null = null;
 
-if (!supabaseUrl || !supabaseAnonKey) {
-  console.error('Faltan las variables de entorno de Supabase en Vercel.');
+export async function getSupabaseClient(): Promise<SupabaseClient> {
+  if (supabaseInstance) return supabaseInstance;
+  if (initPromise) return initPromise;
+
+  initPromise = fetch(`${API_BASE}/api/auth/config`)
+    .then((res) => res.json())
+    .then(({ supabaseUrl, supabaseAnonKey }) => {
+      supabaseInstance = createClient(supabaseUrl, supabaseAnonKey);
+      return supabaseInstance;
+    });
+
+  return initPromise;
 }
-
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
